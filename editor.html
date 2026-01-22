@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>INTEL VAULT // Text Redactor</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body data-page="editor">
+    <div class="app-shell">
+      <header>
+        <div class="logo">INTEL VAULT</div>
+        <div class="view-title">TEXT REDACTOR</div>
+        <div class="status">
+          <div data-clock></div>
+          <div>OFFLINE MODE</div>
+        </div>
+      </header>
+
+      <aside class="no-print">
+        <a href="index.html">Dashboard</a>
+        <a href="verwaltung.html">Verwaltung</a>
+        <a href="akte.html">Neue Akte</a>
+        <a href="editor.html" class="active">Text Redactor</a>
+        <a href="bilder.html">Image Redactor</a>
+        <a href="informationen.html">Informationen</a>
+        <a href="index.html" data-lock>Lock Console</a>
+      </aside>
+
+      <main>
+        <p data-error style="color: var(--red);"></p>
+        <section class="panel">
+          <div class="panel-title">Document Console</div>
+          <div class="doc-editor">
+            <div class="doc-list" data-doclist></div>
+            <div>
+              <h3 data-doc-title></h3>
+              <div
+                class="editor-surface"
+                data-editor
+                contenteditable="true"
+              ></div>
+            </div>
+            <div class="tools-panel">
+              <button class="button" data-redact>Redact Selection</button>
+              <button class="button secondary" data-stamp>Stamp: Classified</button>
+              <button class="button secondary" data-save>Save</button>
+              <button class="button" data-export-txt>Export TXT</button>
+              <button class="button" data-export-html>Export HTML</button>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer>NO AUTH // OFFLINE PROP SYSTEM • v0.9-PROP</footer>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

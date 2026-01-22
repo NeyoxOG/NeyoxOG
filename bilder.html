@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>INTEL VAULT // Image Redactor</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body data-page="bilder">
+    <div class="app-shell">
+      <header>
+        <div class="logo">INTEL VAULT</div>
+        <div class="view-title">IMAGE REDACTOR</div>
+        <div class="status">
+          <div data-clock></div>
+          <div>OFFLINE MODE</div>
+        </div>
+      </header>
+
+      <aside class="no-print">
+        <a href="index.html">Dashboard</a>
+        <a href="verwaltung.html">Verwaltung</a>
+        <a href="akte.html">Neue Akte</a>
+        <a href="editor.html">Text Redactor</a>
+        <a href="bilder.html" class="active">Image Redactor</a>
+        <a href="informationen.html">Informationen</a>
+        <a href="index.html" data-lock>Lock Console</a>
+      </aside>
+
+      <main>
+        <p data-error style="color: var(--red);"></p>
+        <section class="panel">
+          <div class="panel-title">Canvas Redaction</div>
+          <div class="grid cols-3">
+            <div class="canvas-wrap">
+              <canvas></canvas>
+            </div>
+            <div class="tools-panel">
+              <button class="button secondary" data-undo>Undo</button>
+              <button class="button secondary" data-clear>Clear All</button>
+              <label style="display: flex; gap: 8px; align-items: center;">
+                <input type="checkbox" data-stamp />
+                Add Confidential Stamp
+              </label>
+              <button class="button" data-export>Export PNG</button>
+            </div>
+            <div class="panel">
+              <div class="panel-title">Instructions</div>
+              <p style="font-size: 12px; color: var(--muted);">
+                Drag over the image to draw redaction boxes. Export renders a
+                stamped PNG for handoff.
+              </p>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer>NO AUTH // OFFLINE PROP SYSTEM • v0.9-PROP</footer>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

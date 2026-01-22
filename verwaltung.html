@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>INTEL VAULT // Verwaltung</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body data-page="verwaltung">
+    <div class="app-shell">
+      <header>
+        <div class="logo">INTEL VAULT</div>
+        <div class="view-title">VERWALTUNG</div>
+        <div class="status">
+          <div data-clock></div>
+          <div>OFFLINE MODE</div>
+        </div>
+      </header>
+
+      <aside class="no-print">
+        <a href="index.html">Dashboard</a>
+        <a href="verwaltung.html" class="active">Verwaltung</a>
+        <a href="akte.html">Neue Akte</a>
+        <a href="editor.html">Text Redactor</a>
+        <a href="bilder.html">Image Redactor</a>
+        <a href="informationen.html">Informationen</a>
+        <a href="index.html" data-lock>Lock Console</a>
+      </aside>
+
+      <main>
+        <section class="panel">
+          <div class="panel-title">Filter Console</div>
+          <div class="grid cols-4">
+            <div>
+              <label>Search</label>
+              <input data-filter="search" placeholder="Name / ID / Division" />
+            </div>
+            <div>
+              <label>Status</label>
+              <select data-filter="status">
+                <option value="">ALL</option>
+                <option value="ACTIVE">ACTIVE</option>
+                <option value="ON HOLD">ON HOLD</option>
+                <option value="FLAGGED">FLAGGED</option>
+                <option value="ARCHIVED">ARCHIVED</option>
+              </select>
+            </div>
+            <div>
+              <label>Standort</label>
+              <select data-filter="site">
+                <option value="">ALL</option>
+              </select>
+            </div>
+            <div>
+              <label>Flagged Only</label>
+              <input type="checkbox" data-filter="flagged" />
+            </div>
+          </div>
+          <div style="margin-top: 16px; display: flex; gap: 12px; flex-wrap: wrap;">
+            <button class="button secondary" data-export-db>Export DB (JSON)</button>
+            <button class="button secondary" data-import-db>Import DB</button>
+            <input
+              type="file"
+              data-import-file
+              accept="application/json"
+              style="display: none;"
+            />
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-title">Personnel Registry</div>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>File Handle</th>
+                <th>Personalnr.</th>
+                <th>Name</th>
+                <th>Division</th>
+                <th>Role</th>
+                <th>Site</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody data-table></tbody>
+          </table>
+        </section>
+      </main>
+
+      <footer>NO AUTH // OFFLINE PROP SYSTEM • v0.9-PROP</footer>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
