@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>INTEL VAULT // Informationen</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body data-page="informationen">
+    <div class="app-shell">
+      <header>
+        <div class="logo">INTEL VAULT</div>
+        <div class="view-title">INFORMATIONEN</div>
+        <div class="status">
+          <div data-clock></div>
+          <div>OFFLINE MODE</div>
+        </div>
+      </header>
+
+      <aside class="no-print">
+        <a href="index.html">Dashboard</a>
+        <a href="verwaltung.html">Verwaltung</a>
+        <a href="akte.html">Neue Akte</a>
+        <a href="editor.html">Text Redactor</a>
+        <a href="bilder.html">Image Redactor</a>
+        <a href="informationen.html" class="active">Informationen</a>
+        <a href="index.html" data-lock>Lock Console</a>
+      </aside>
+
+      <main>
+        <section class="panel">
+          <div class="panel-title">Disclaimer</div>
+          <p>
+            Dies ist ein Film-Requisitensystem. Keine echte Sicherheit, keine
+            Verschlüsselung. Alle Daten bleiben lokal im Browser.
+          </p>
+        </section>
+
+        <section class="panel">
+          <div class="panel-title">Bedienung in 5 Schritten</div>
+          <ol style="padding-left: 18px; color: var(--muted);">
+            <li>Open File Handle in Verwaltung</li>
+            <li>Edit Text- oder Image-Dokumente</li>
+            <li>Redact Selection / Draw Boxes</li>
+            <li>Export Package (TXT/HTML/PNG/JSON)</li>
+            <li>Print View für Film-Aufnahmen</li>
+          </ol>
+        </section>
+
+        <section class="panel">
+          <div class="panel-title">Tastenkürzel (optional)</div>
+          <ul style="list-style: none; color: var(--muted);">
+            <li>Ctrl + S → Save (Text Editor)</li>
+            <li>R → Redact Selection</li>
+            <li>P → Print View (Akte)</li>
+          </ul>
+        </section>
+      </main>
+
+      <footer>NO AUTH // OFFLINE PROP SYSTEM • v0.9-PROP</footer>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

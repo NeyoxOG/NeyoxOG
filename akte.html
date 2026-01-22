@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>INTEL VAULT // Akte</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body data-page="akte">
+    <div class="app-shell">
+      <header>
+        <div class="logo">INTEL VAULT</div>
+        <div class="view-title">PERSONNEL FILE</div>
+        <div class="status">
+          <div data-clock></div>
+          <div>OFFLINE MODE</div>
+        </div>
+      </header>
+
+      <aside class="no-print">
+        <a href="index.html">Dashboard</a>
+        <a href="verwaltung.html">Verwaltung</a>
+        <a href="akte.html" class="active">Neue Akte</a>
+        <a href="editor.html">Text Redactor</a>
+        <a href="bilder.html">Image Redactor</a>
+        <a href="informationen.html">Informationen</a>
+        <a href="index.html" data-lock>Lock Console</a>
+      </aside>
+
+      <main>
+        <div class="print-only">CLASSIFIED</div>
+        <section class="panel">
+          <div class="panel-title">File Handle</div>
+          <p data-error style="color: var(--red);"></p>
+          <div style="display: flex; gap: 20px; align-items: center;">
+            <div>
+              <h2 data-emp-name></h2>
+              <p style="color: var(--muted);">ID: <span data-emp-id></span></p>
+            </div>
+            <div class="stamp">CLASSIFIED</div>
+            <div style="margin-left: auto; display: flex; gap: 10px;">
+              <button class="button secondary" data-print>Print</button>
+              <button class="button" data-export>Export File</button>
+            </div>
+          </div>
+          <div style="margin-top: 12px; display: flex; gap: 12px;">
+            <span class="badge" data-emp-clearance></span>
+            <span class="badge" data-emp-status></span>
+            <span class="badge flagged" data-emp-flags></span>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-title">Identity</div>
+          <p>Birthdate: <span data-identity="dob"></span></p>
+          <p>Personalnr: <span data-identity="pnr"></span></p>
+        </section>
+
+        <section class="panel">
+          <div class="panel-title">Contact</div>
+          <p>Email: <span data-contact="mail"></span></p>
+          <p>Phone: <span data-contact="phone"></span></p>
+          <p>Address: <span data-contact="address"></span></p>
+        </section>
+
+        <section class="panel">
+          <div class="panel-title">Assignment</div>
+          <p>Division: <span data-job="division"></span></p>
+          <p>Role: <span data-job="role"></span></p>
+          <p>Site: <span data-job="site"></span></p>
+          <p>Status: <span data-job="status"></span></p>
+        </section>
+
+        <section class="panel">
+          <div class="panel-title">Security / Clearance</div>
+          <p>Badge ID: <span data-sec="badge"></span></p>
+          <p>Access Zones: <span data-sec="zones"></span></p>
+        </section>
+
+        <section class="panel">
+          <div class="panel-title">Documents</div>
+          <ul data-docs style="list-style: none; display: grid; gap: 8px;"></ul>
+        </section>
+
+        <section class="panel">
+          <div class="panel-title">Audit Trail</div>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Action</th>
+                <th>By</th>
+              </tr>
+            </thead>
+            <tbody data-audit></tbody>
+          </table>
+        </section>
+      </main>
+
+      <footer>NO AUTH // OFFLINE PROP SYSTEM • v0.9-PROP</footer>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
