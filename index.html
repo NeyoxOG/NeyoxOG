@@ -1029,11 +1029,19 @@ Beende diesen Satz:
     }
 
     function revealCrosswordHint(){
-      if (state.crosswordHintsShown >= CROSSWORD_HINTS.length) return;
+      if (state.crosswordHintsShown >= CROSSWORD_HINTS.length){
+        crosswordHintBtn.disabled = true;
+        crosswordHintBtn.textContent = "Alle Hinweise gezeigt";
+        return;
+      }
       crosswordHints.style.display = "grid";
       crosswordHints.innerHTML = CROSSWORD_HINTS.slice(0, state.crosswordHintsShown + 1)
         .map((hint) => `<span>${hint}</span>`).join("");
       state.crosswordHintsShown += 1;
+      if (state.crosswordHintsShown >= CROSSWORD_HINTS.length){
+        crosswordHintBtn.disabled = true;
+        crosswordHintBtn.textContent = "Alle Hinweise gezeigt";
+      }
     }
 
     function renderCrossword(){
@@ -1399,6 +1407,8 @@ Beende diesen Satz:
         crosswordHints.style.display = "none";
         crosswordHints.innerHTML = "";
         crosswordHintBtn.style.display = "inline-flex";
+        crosswordHintBtn.disabled = false;
+        crosswordHintBtn.textContent = "Hinweis zeigen";
         crosswordSolveBtn.style.display = CROSSWORD_DEBUG ? "inline-flex" : "none";
         renderCrossword();
       } else {
@@ -1770,6 +1780,7 @@ Beende diesen Satz:
           state.crosswordFailures += 1;
           if (state.crosswordFailures >= 2){
             revealCrosswordHint();
+            setToast("bad", "Ein Hinweis wurde eingeblendet 🧩");
           }
         }
         if (step.type === "wordconnect"){
