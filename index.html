@@ -222,32 +222,6 @@
     }
     .reward-badge.show{display:inline-flex; animation: rewardPop .5s var(--ease);}
 
-    .crossword{margin-top:16px; display:grid; gap:14px;}
-    .crossword-grid{display:grid; grid-template-columns: repeat(5, 42px); gap:6px; justify-content:flex-start;}
-    .crossword-cell{
-      width:42px; height:42px; border-radius:10px; border:1px solid var(--line);
-      background:rgba(255,255,255,.06); display:grid; place-items:center;
-      font-weight:800; text-transform:uppercase;
-      position:relative;
-    }
-    .crossword-cell input{
-      width:100%; height:100%; border:0; outline:none; background:transparent; color:var(--text);
-      text-align:center; font-size:16px; text-transform:uppercase;
-    }
-    .crossword-cell.block{background:rgba(255,255,255,.02); border:1px dashed rgba(255,255,255,.12);}
-    .crossword-cell .cell-index{
-      position:absolute; top:4px; left:6px; font-size:9px; color:rgba(247,247,251,.6);
-    }
-    .crossword-cell.is-active{border-color:rgba(255,255,255,.6); box-shadow:0 0 0 2px rgba(255,255,255,.12);}
-    .crossword-cell.is-highlight{background:rgba(255,255,255,.12);}
-    .crossword-cell.is-correct{border-color:rgba(53,208,127,.5);}
-    .crossword-cell.is-wrong{border-color:rgba(255,183,3,.5);}
-    .crossword-clues{display:grid; gap:8px; color:var(--muted); font-size:13px;}
-    .crossword-meta{display:flex; gap:10px; flex-wrap:wrap; font-size:12px; color:var(--muted);}
-    .crossword-meta span{padding:6px 10px; border-radius:12px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.04);}
-    .crossword-clue{cursor:pointer; display:flex; gap:8px; align-items:flex-start;}
-    .crossword-clue[aria-current="true"]{color:var(--text);}
-
     .wordconnect{margin-top:16px; display:grid; gap:14px;}
     .wordconnect-grid{display:grid; grid-template-columns: repeat(4, 64px); gap:10px; justify-content:flex-start; touch-action:none;}
     .wordconnect-cell{
@@ -341,7 +315,7 @@
           <div class="logo" aria-hidden="true"></div>
           <div class="title">
             <h1>Fia, eine kleine Reise 💘</h1>
-            <p>Von Collin — 7 Schritte, 1 Frage am Ende.</p>
+            <p>Von Collin — 6 Schritte, 1 Frage am Ende.</p>
           </div>
         </div>
         <div style="display:flex; gap:10px; align-items:center;">
@@ -366,10 +340,9 @@
                 <div class="pill"><b>1</b> Ort 📍</div>
                 <div class="pill"><b>2</b> Song 🎶</div>
                 <div class="pill"><b>3</b> Wörter 🔗</div>
-                <div class="pill"><b>4</b> Rätsel 💘</div>
-                <div class="pill"><b>5</b> Gefühl 🫶</div>
-                <div class="pill"><b>6</b> Zuhause 🏠</div>
-                <div class="pill"><b>7</b> Zukunft ✨</div>
+                <div class="pill"><b>4</b> Gefühl 🫶</div>
+                <div class="pill"><b>5</b> Zuhause 🏠</div>
+                <div class="pill"><b>6</b> Zukunft ✨</div>
               </div>
             </div>
           </div>
@@ -390,18 +363,6 @@
                 <div class="wordconnect-words" id="wordconnectWords"></div>
               </div>
 
-              <div class="crossword" id="crossword" style="display:none" aria-live="polite">
-                <div class="crossword-meta">
-                  <span id="crosswordDirection">Richtung: → Quer</span>
-                  <span id="crosswordClueActive">Hinweis: —</span>
-                  <button class="btn secondary" type="button" id="crosswordClearBtn">Felder leeren</button>
-                  <button class="btn secondary" type="button" id="crosswordSolveBtn" style="display:none">Auto-Lösen</button>
-                </div>
-                <div class="crossword-grid" id="crosswordGrid" aria-label="Kreuzworträtsel"></div>
-                <div class="wordconnect-words" id="crosswordHints" style="display:none"></div>
-                <button class="btn secondary" type="button" id="crosswordHintBtn">Hinweis zeigen</button>
-                <div class="crossword-clues" id="crosswordClues"></div>
-              </div>
 
               <form id="answerForm" autocomplete="off">
                 <div class="input" id="inputWrap">
@@ -423,7 +384,7 @@
             <div class="stat">
               <div>
                 <div class="k">Fortschritt</div>
-                <div class="v"><span id="progressLabel">0</span>/7 gelöst</div>
+                <div class="v"><span id="progressLabel">0</span>/6 gelöst</div>
               </div>
               <div style="text-align:right">
                 <div class="k">Bonus</div>
@@ -512,7 +473,7 @@
 
     const FIRST_KISS_PLACE = "Brücke";
     const OUR_SONG = "Walzer";
-    const STEP_TOTAL = 7;
+    const STEP_TOTAL = 6;
 
     const WORDCONNECT = {
       size: 4,
@@ -524,23 +485,6 @@
       ],
       words: ["NAHE","EHE","KUSS"],
       required: 3
-    };
-
-    const CROSSWORD_DEBUG = false;
-
-    const CROSSWORD = {
-      size: 5,
-      blocks: [
-        [1,0],[1,1],[1,3],
-        [2,0],[2,1],[2,3],
-        [4,0],[4,1],[4,2],[4,3],[4,4]
-      ],
-      words: [
-        { row: 0, col: 0, dir: "across", answer: "KLEE", clue: "Eine kleine Blume mit 4 Buchstaben." },
-        { row: 0, col: 2, dir: "down", answer: "EHE", clue: "Ein kurzes Wort für ein großes Versprechen." },
-        { row: 3, col: 0, dir: "across", answer: "PULS", clue: "Etwas, das in uns schlägt." },
-        { row: 0, col: 4, dir: "down", answer: "KUSS", clue: "Ein Kuss sagt manchmal alles." }
-      ]
     };
 
     const STEPS = [
@@ -588,17 +532,8 @@ Verbinde die Buchstaben zu Wörtern, die zu uns passen.`,
         hint: "Tipp: Nähe, Ehe, Kuss. Finde alle 3 Wörter."
       },
       {
-        type: "crossword",
-        title: "Schritt 4: Kreuzworträtsel",
-        text:
-`Ein kleines Kreuzworträtsel über Liebe.
-
-Nimm dir einen Moment und fülle die Felder.`,
-        hint: "Tipp: Es geht um Gefühle, Nähe und das, was bleibt."
-      },
-      {
         type: "free",
-        title: "Schritt 5: Gefühl",
+        title: "Schritt 4: Gefühl",
         text:
 `Wenn unser Song läuft…
 
@@ -608,7 +543,7 @@ was fühlst du dann als Erstes?`,
       },
       {
         type: "free",
-        title: "Schritt 6: Zuhause",
+        title: "Schritt 5: Zuhause",
         text:
 `Vervollständige den Satz ehrlich:
 
@@ -618,7 +553,7 @@ was fühlst du dann als Erstes?`,
       },
       {
         type: "free",
-        title: "Schritt 7: Zukunft",
+        title: "Schritt 6: Zukunft",
         text:
 `Letzter Schritt.
 
@@ -642,15 +577,6 @@ Beende diesen Satz:
     const wordconnectHints = document.getElementById("wordconnectHints");
     const wordconnectHintBtn = document.getElementById("wordconnectHintBtn");
     const wordconnectWords = document.getElementById("wordconnectWords");
-    const crossword = document.getElementById("crossword");
-    const crosswordGrid = document.getElementById("crosswordGrid");
-    const crosswordClues = document.getElementById("crosswordClues");
-    const crosswordDirection = document.getElementById("crosswordDirection");
-    const crosswordClueActive = document.getElementById("crosswordClueActive");
-    const crosswordClearBtn = document.getElementById("crosswordClearBtn");
-    const crosswordSolveBtn = document.getElementById("crosswordSolveBtn");
-    const crosswordHints = document.getElementById("crosswordHints");
-    const crosswordHintBtn = document.getElementById("crosswordHintBtn");
     const form      = document.getElementById("answerForm");
     const inputWrap = document.getElementById("inputWrap");
     const input     = document.getElementById("answerInput");
@@ -702,11 +628,7 @@ Beende diesen Satz:
       wordconnectFailures: 0,
       wordconnectHintsShown: 0,
       wordconnectDragging: false,
-      wordconnectPointerId: null,
-      crosswordFailures: 0,
-      crosswordHintsShown: 0,
-      crosswordDirection: "across",
-      crosswordActive: null
+      wordconnectPointerId: null
     };
 
     const REVEALS = [
@@ -714,7 +636,6 @@ Beende diesen Satz:
       `Freigeschaltet: ${FIRST_KISS_PLACE} — unser Ort.`,
       `Freigeschaltet: ${OUR_SONG} — Provinz.`,
       "Freigeschaltet: Wörter finden leichter zueinander als wir je dachten.",
-      "Freigeschaltet: Das kleine Rätsel gehört jetzt dir.",
       "Freigeschaltet: Deine Worte fühlen sich an wie eine Umarmung.",
       "Freigeschaltet: Zuhause ist kein Ort — es ist dieses Gefühl mit dir.",
       "Freigeschaltet: Zukunft klingt plötzlich leicht und wunderschön."
@@ -735,14 +656,6 @@ Beende diesen Satz:
       "Tipp 3: Das kurze Wort ist EHE (mit H in der Mitte)."
     ];
 
-    const CROSSWORD_HINTS = [
-      "Tipp 1: Oben quer steht eine Blume mit 4 Buchstaben.",
-      "Tipp 2: In der Mitte quer: etwas, das in uns schlägt (4 Buchstaben).",
-      "Tipp 3: Rechts runter ist ein Kuss (4 Buchstaben).",
-      "Tipp 4: Runter bei Spalte 3 steht ein kurzes Versprechen (3 Buchstaben).",
-      "Tipp 5: Das obere Wort beginnt mit K.",
-      "Tipp 6: Das Wort in der Mitte endet mit S."
-    ];
 
     const ACTIVITY_CHOICES = [
       {
@@ -1029,302 +942,6 @@ Beende diesen Satz:
       state.wordconnectHintsShown += 1;
     }
 
-    function revealCrosswordHint(){
-      if (state.crosswordHintsShown >= CROSSWORD_HINTS.length){
-        crosswordHintBtn.disabled = true;
-        crosswordHintBtn.textContent = "Alle Hinweise gezeigt";
-        return;
-      }
-      crosswordHints.style.display = "grid";
-      crosswordHints.innerHTML = CROSSWORD_HINTS.slice(0, state.crosswordHintsShown + 1)
-        .map((hint) => `<span>${hint}</span>`).join("");
-      state.crosswordHintsShown += 1;
-      if (state.crosswordHintsShown >= CROSSWORD_HINTS.length){
-        crosswordHintBtn.disabled = true;
-        crosswordHintBtn.textContent = "Alle Hinweise gezeigt";
-      }
-    }
-
-    function renderCrossword(){
-      crosswordGrid.innerHTML = "";
-      crosswordClues.innerHTML = "";
-      const size = CROSSWORD.size;
-      const blockSet = new Set(CROSSWORD.blocks.map(([r,c]) => `${r}-${c}`));
-      const startMap = new Map();
-      CROSSWORD.words.forEach((word, idx) => {
-        startMap.set(`${word.row}-${word.col}`, idx + 1);
-      });
-
-      for (let r = 0; r < size; r++){
-        for (let c = 0; c < size; c++){
-          const cell = document.createElement("div");
-          cell.className = "crossword-cell";
-          if (blockSet.has(`${r}-${c}`)){
-            cell.classList.add("block");
-          } else {
-            if (startMap.has(`${r}-${c}`)){
-              const index = document.createElement("span");
-              index.className = "cell-index";
-              index.textContent = String(startMap.get(`${r}-${c}`));
-              cell.appendChild(index);
-            }
-            const input = document.createElement("input");
-            input.maxLength = 1;
-            input.setAttribute("aria-label", `Feld ${r + 1}, ${c + 1}`);
-            input.addEventListener("input", (e) => {
-              const value = e.target.value.replace(/[^a-zA-Z]/g, "").toUpperCase();
-              e.target.value = value;
-              handleCrosswordInput(r, c, value);
-            });
-            input.addEventListener("focus", () => setActiveCrosswordCell(r, c, false));
-            input.addEventListener("click", () => setActiveCrosswordCell(r, c, true));
-            input.addEventListener("keydown", (event) => handleCrosswordKeydown(event, r, c));
-            input.addEventListener("paste", (event) => handleCrosswordPaste(event, r, c));
-            cell.appendChild(input);
-          }
-          crosswordGrid.appendChild(cell);
-        }
-      }
-
-      const clueTitle = document.createElement("div");
-      clueTitle.innerHTML = "<b>Hinweise:</b>";
-      crosswordClues.appendChild(clueTitle);
-      CROSSWORD.words.forEach((word, idx) => {
-        const clue = document.createElement("div");
-        clue.className = "crossword-clue";
-        clue.setAttribute("data-index", String(idx));
-        const dir = word.dir === "across" ? "→" : "↓";
-        clue.textContent = `${idx + 1}${dir} ${word.clue}`;
-        clue.addEventListener("click", () => {
-          ensureAudio();
-          playChime("tap");
-          setActiveCrosswordWord(CROSSWORD.words[idx]);
-        });
-        crosswordClues.appendChild(clue);
-      });
-      setActiveCrosswordWord(CROSSWORD.words[0]);
-    }
-
-    function validateCrossword(){
-      const size = CROSSWORD.size;
-      const cells = crosswordGrid.querySelectorAll(".crossword-cell");
-      if (!cells.length) return false;
-      const getChar = (r,c) => {
-        const index = r * size + c;
-        const cell = cells[index];
-        const input = cell ? cell.querySelector("input") : null;
-        return input ? input.value.trim().toUpperCase() : "";
-      };
-      return CROSSWORD.words.every((word) => {
-        for (let i = 0; i < word.answer.length; i++){
-          const r = word.row + (word.dir === "down" ? i : 0);
-          const c = word.col + (word.dir === "across" ? i : 0);
-          const expected = word.answer[i];
-          const actual = getChar(r,c);
-          if (!actual) return false;
-          if (actual !== expected) return false;
-        }
-        return true;
-      });
-    }
-
-    function markCrosswordValidation(){
-      const size = CROSSWORD.size;
-      const cells = crosswordGrid.querySelectorAll(".crossword-cell");
-      const getInput = (r,c) => {
-        const cell = cells[r * size + c];
-        return cell ? cell.querySelector("input") : null;
-      };
-      CROSSWORD.words.forEach((word) => {
-        for (let i = 0; i < word.answer.length; i++){
-          const r = word.row + (word.dir === "down" ? i : 0);
-          const c = word.col + (word.dir === "across" ? i : 0);
-          const input = getInput(r,c);
-          const cell = cells[r * size + c];
-          if (!input || !cell) continue;
-          if (!input.value) continue;
-          if (input.value === word.answer[i]){
-            cell.classList.add("is-correct");
-            window.setTimeout(() => cell.classList.remove("is-correct"), 500);
-          } else {
-            cell.classList.add("is-wrong");
-            window.setTimeout(() => cell.classList.remove("is-wrong"), 500);
-          }
-        }
-      });
-    }
-
-    function handleCrosswordInput(row, col, value){
-      ensureAudio();
-      if (value) playChime("tick");
-      if (!value) return;
-      moveCrosswordCursor(row, col, 1);
-      checkCrosswordWordComplete(row, col);
-    }
-
-    function handleCrosswordKeydown(event, row, col){
-      if (event.key === "Backspace" && !event.target.value){
-        event.preventDefault();
-        moveCrosswordCursor(row, col, -1, true);
-        return;
-      }
-      if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(event.key)){
-        event.preventDefault();
-        const delta = {
-          ArrowUp: [-1,0],
-          ArrowDown: [1,0],
-          ArrowLeft: [0,-1],
-          ArrowRight: [0,1]
-        }[event.key];
-        focusNextCrosswordCell(row, col, delta[0], delta[1]);
-      }
-    }
-
-    function handleCrosswordPaste(event, row, col){
-      event.preventDefault();
-      const text = (event.clipboardData.getData("text") || "").toUpperCase().replace(/[^A-Z]/g, "");
-      if (!text) return;
-      const cells = getWordCellsForDirection(row, col, state.crosswordDirection);
-      if (!cells.length) return;
-      text.split("").forEach((char, index) => {
-        const target = cells[index];
-        if (!target) return;
-        target.input.value = char;
-      });
-      const last = cells[Math.min(text.length - 1, cells.length - 1)];
-      if (last) last.input.focus();
-    }
-
-    function setActiveCrosswordCell(row, col, toggle){
-      const cell = state.crosswordActive;
-      const hasAcross = Boolean(findWordForCell(row, col, "across"));
-      const hasDown = Boolean(findWordForCell(row, col, "down"));
-      if (cell && cell.row === row && cell.col === col && toggle && hasAcross && hasDown){
-        state.crosswordDirection = state.crosswordDirection === "across" ? "down" : "across";
-        playChime("tap");
-      }
-      state.crosswordActive = { row, col };
-      updateCrosswordHighlight();
-    }
-
-    function setActiveCrosswordWord(word){
-      state.crosswordDirection = word.dir;
-      state.crosswordActive = { row: word.row, col: word.col };
-      focusCrosswordCell(word.row, word.col);
-      updateCrosswordHighlight(word);
-    }
-
-    function updateCrosswordHighlight(selectedWord){
-      const cells = crosswordGrid.querySelectorAll(".crossword-cell");
-      cells.forEach((cell) => cell.classList.remove("is-active", "is-highlight"));
-      const word = selectedWord || findWordForCell(state.crosswordActive?.row, state.crosswordActive?.col, state.crosswordDirection);
-      if (!word) return;
-      const wordCells = getWordCells(word);
-      wordCells.forEach(({ cell }) => cell.classList.add("is-highlight"));
-      const activeIndex = state.crosswordActive ? state.crosswordActive.row * CROSSWORD.size + state.crosswordActive.col : -1;
-      if (cells[activeIndex]) cells[activeIndex].classList.add("is-active");
-      crosswordDirection.textContent = `Richtung: ${state.crosswordDirection === "across" ? "→ Quer" : "↓ Runter"}`;
-      crosswordClueActive.textContent = `Hinweis: ${word.clue}`;
-      crosswordClues.querySelectorAll(".crossword-clue").forEach((clue, idx) => {
-        clue.setAttribute("aria-current", String(CROSSWORD.words[idx] === word));
-      });
-    }
-
-    function getWordCells(word){
-      const cells = [];
-      for (let i = 0; i < word.answer.length; i++){
-        const r = word.row + (word.dir === "down" ? i : 0);
-        const c = word.col + (word.dir === "across" ? i : 0);
-        const cell = crosswordGrid.children[r * CROSSWORD.size + c];
-        const input = cell.querySelector("input");
-        cells.push({ cell, input, row: r, col: c });
-      }
-      return cells;
-    }
-
-    function getWordCellsForDirection(row, col, direction){
-      const word = findWordForCell(row, col, direction);
-      return word ? getWordCells(word) : [];
-    }
-
-    function findWordForCell(row, col, direction){
-      if (row === null || row === undefined) return null;
-      return CROSSWORD.words.find((word) => {
-        if (word.dir !== direction) return false;
-        const length = word.answer.length;
-        const inRow = direction === "across" && row === word.row && col >= word.col && col < word.col + length;
-        const inCol = direction === "down" && col === word.col && row >= word.row && row < word.row + length;
-        return inRow || inCol;
-      }) || null;
-    }
-
-    function moveCrosswordCursor(row, col, delta, backspace){
-      const wordCells = getWordCellsForDirection(row, col, state.crosswordDirection);
-      if (!wordCells.length) return;
-      const index = wordCells.findIndex((cell) => cell.row === row && cell.col === col);
-      const target = wordCells[index + delta];
-      if (target){
-        if (backspace) target.input.value = "";
-        target.input.focus();
-      }
-    }
-
-    function focusCrosswordCell(row, col){
-      const cell = crosswordGrid.children[row * CROSSWORD.size + col];
-      const input = cell ? cell.querySelector("input") : null;
-      if (input) input.focus();
-    }
-
-    function focusNextCrosswordCell(row, col, dr, dc){
-      let r = row + dr;
-      let c = col + dc;
-      while (r >= 0 && r < CROSSWORD.size && c >= 0 && c < CROSSWORD.size){
-        const cell = crosswordGrid.children[r * CROSSWORD.size + c];
-        const input = cell ? cell.querySelector("input") : null;
-        if (input){
-          input.focus();
-          return;
-        }
-        r += dr;
-        c += dc;
-      }
-    }
-
-    function checkCrosswordWordComplete(row, col){
-      const word = findWordForCell(row, col, state.crosswordDirection);
-      if (!word) return;
-      const wordCells = getWordCells(word);
-      const filled = wordCells.every(({ input }) => input.value);
-      if (!filled) return;
-      const correct = wordCells.every(({ input }, index) => input.value === word.answer[index]);
-      if (correct){
-        wordCells.forEach(({ cell }) => cell.classList.add("is-correct"));
-        playChime("reward");
-        window.setTimeout(() => wordCells.forEach(({ cell }) => cell.classList.remove("is-correct")), 600);
-      }
-    }
-
-    function clearCrossword(){
-      crosswordGrid.querySelectorAll("input").forEach((input) => {
-        input.value = "";
-      });
-      setToast("bad", "Felder geleert.");
-    }
-
-    function autoSolveCrossword(){
-      if (!CROSSWORD_DEBUG) return;
-      CROSSWORD.words.forEach((word) => {
-        for (let i = 0; i < word.answer.length; i++){
-          const r = word.row + (word.dir === "down" ? i : 0);
-          const c = word.col + (word.dir === "across" ? i : 0);
-          const cell = crosswordGrid.children[r * CROSSWORD.size + c];
-          const input = cell ? cell.querySelector("input") : null;
-          if (input) input.value = word.answer[i];
-        }
-      });
-      setToast("ok", "Auto-Lösen aktiv (Debug).");
-    }
-
     function setStatus(text){
       statusText.textContent = text;
     }
@@ -1352,9 +969,6 @@ Beende diesen Satz:
       } else if (STEPS[state.idx].type === "wordconnect") {
         const firstCell = wordconnectGrid.querySelector(".wordconnect-cell");
         if (firstCell) firstCell.focus();
-      } else if (STEPS[state.idx].type === "crossword") {
-        const firstInput = crosswordGrid.querySelector("input");
-        if (firstInput) firstInput.focus();
       } else {
         input.focus();
       }
@@ -1375,7 +989,6 @@ Beende diesen Satz:
 
       if (step.type === "intro"){
         inputWrap.style.display = "none";
-        crossword.style.display = "none";
         wordconnect.style.display = "none";
         riddleMeta.style.display = "none";
         submitBtn.textContent = "Start ➜";
@@ -1384,41 +997,20 @@ Beende diesen Satz:
         nowPlaying.style.display = "none";
       } else if (step.type === "wordconnect") {
         inputWrap.style.display = "none";
-        crossword.style.display = "none";
         wordconnect.style.display = "grid";
         submitBtn.textContent = "Prüfen ➜";
         helpBtn.style.display = "inline-flex";
         setStatus("Im Rätsel-Modus");
         nowPlaying.style.display = "none";
-        riddleMeta.textContent = "Rätsel 1/2";
+        riddleMeta.textContent = "Rätsel";
         riddleMeta.style.display = "block";
         state.wordconnectFound = new Set();
         state.wordconnectPath = [];
         state.wordconnectFailures = 0;
         state.wordconnectHintsShown = 0;
         renderWordconnect();
-      } else if (step.type === "crossword") {
-        inputWrap.style.display = "none";
-        crossword.style.display = "grid";
-        wordconnect.style.display = "none";
-        submitBtn.textContent = "Prüfen ➜";
-        helpBtn.style.display = "inline-flex";
-        setStatus("Im Rätsel-Modus");
-        nowPlaying.style.display = "none";
-        riddleMeta.textContent = "Rätsel 2/2";
-        riddleMeta.style.display = "block";
-        state.crosswordFailures = 0;
-        state.crosswordHintsShown = 0;
-        crosswordHints.style.display = "none";
-        crosswordHints.innerHTML = "";
-        crosswordHintBtn.style.display = "inline-flex";
-        crosswordHintBtn.disabled = false;
-        crosswordHintBtn.textContent = "Hinweis zeigen";
-        crosswordSolveBtn.style.display = CROSSWORD_DEBUG ? "inline-flex" : "none";
-        renderCrossword();
       } else {
         inputWrap.style.display = "flex";
-        crossword.style.display = "none";
         wordconnect.style.display = "none";
         submitBtn.textContent = "Weiter ➜";
         helpBtn.style.display = "inline-flex";
@@ -1434,9 +1026,6 @@ Beende diesen Satz:
       if (STEPS[state.idx].type === "wordconnect"){
         return state.wordconnectFound.size >= WORDCONNECT.required;
       }
-      if (STEPS[state.idx].type === "crossword"){
-        return validateCrossword();
-      }
       return isAccepted(answer, STEPS[state.idx].accept || []);
     }
 
@@ -1450,9 +1039,6 @@ Beende diesen Satz:
       if (step.type === "free"){
         const trimmed = answer.trim();
         return `Danke fürs Teilen, ${HER_NAME}. „${trimmed}“ fühlt sich wunderschön an. 🫶`;
-      }
-      if (step.type === "crossword"){
-        return "Wunderschön gelöst. Liebe hat viele Wege — ihr seid einer davon. 💘";
       }
       if (step.type === "wordconnect"){
         return "So viele Worte gefunden — und jedes davon passt zu uns. 💞";
@@ -1784,14 +1370,6 @@ Beende diesen Satz:
       if (validateAnswer(input.value)){
         handleSuccess(input.value);
       } else {
-        if (step.type === "crossword"){
-          markCrosswordValidation();
-          state.crosswordFailures += 1;
-          if (state.crosswordFailures >= 2){
-            revealCrosswordHint();
-            setToast("bad", "Ein Hinweis wurde eingeblendet 🧩");
-          }
-        }
         if (step.type === "wordconnect"){
           handleFailure(`Noch ${WORDCONNECT.required - state.wordconnectFound.size} Wörter fehlen 💘`);
           return;
@@ -1816,28 +1394,10 @@ Beende diesen Satz:
       togglePlayer();
     });
 
-    crosswordClearBtn.addEventListener("click", () => {
-      ensureAudio();
-      playChime("click");
-      clearCrossword();
-    });
-
-    crosswordSolveBtn.addEventListener("click", () => {
-      ensureAudio();
-      playChime("tap");
-      autoSolveCrossword();
-    });
-
     wordconnectHintBtn.addEventListener("click", () => {
       ensureAudio();
       playChime("tap");
       revealWordconnectHint();
-    });
-
-    crosswordHintBtn.addEventListener("click", () => {
-      ensureAudio();
-      playChime("tap");
-      revealCrosswordHint();
     });
 
     muteBtn.addEventListener("click", () => {
