@@ -249,13 +249,13 @@
     .crossword-clue[aria-current="true"]{color:var(--text);}
 
     .wordconnect{margin-top:16px; display:grid; gap:14px;}
-    .wordconnect-grid{display:grid; grid-template-columns: repeat(4, 64px); gap:10px; justify-content:flex-start;}
+    .wordconnect-grid{display:grid; grid-template-columns: repeat(4, 64px); gap:10px; justify-content:flex-start; touch-action:none;}
     .wordconnect-cell{
       width:64px; height:64px; border-radius:16px; border:1px solid var(--line);
       background:rgba(255,255,255,.06); display:grid; place-items:center;
-      font-weight:800; font-size:18px; letter-spacing:.6px;
+      font-weight:800; font-size:18px; letter-spacing:.6px; touch-action:none;
     }
-    .wordconnect-cell.active{border-color:rgba(255,255,255,.6); background:rgba(255,255,255,.14);}
+    .wordconnect-cell.active{border-color:rgba(255,255,255,.8); background:rgba(255,255,255,.22); box-shadow:0 0 16px rgba(255,255,255,.25);}
     .wordconnect-current{font-weight:800; letter-spacing:.5px;}
     .wordconnect-words{display:grid; gap:6px; font-size:13px; color:var(--muted);}
     .wordconnect-words span.found{color:var(--text);}
@@ -385,6 +385,8 @@
               <div class="wordconnect" id="wordconnect" style="display:none" aria-live="polite">
                 <div class="wordconnect-grid" id="wordconnectGrid" aria-label="Wörter verbinden"></div>
                 <div class="wordconnect-current" id="wordconnectCurrent">—</div>
+                <div class="wordconnect-words" id="wordconnectHints" style="display:none"></div>
+                <button class="btn secondary" type="button" id="wordconnectHintBtn" style="display:none">Hinweis zeigen</button>
                 <div class="wordconnect-words" id="wordconnectWords"></div>
               </div>
 
@@ -632,6 +634,8 @@ Beende diesen Satz:
     const wordconnect = document.getElementById("wordconnect");
     const wordconnectGrid = document.getElementById("wordconnectGrid");
     const wordconnectCurrent = document.getElementById("wordconnectCurrent");
+    const wordconnectHints = document.getElementById("wordconnectHints");
+    const wordconnectHintBtn = document.getElementById("wordconnectHintBtn");
     const wordconnectWords = document.getElementById("wordconnectWords");
     const crossword = document.getElementById("crossword");
     const crosswordGrid = document.getElementById("crosswordGrid");
@@ -687,6 +691,10 @@ Beende diesen Satz:
       muted: false,
       wordconnectFound: new Set(),
       wordconnectPath: [],
+      wordconnectFailures: 0,
+      wordconnectHintsShown: 0,
+      wordconnectDragging: false,
+      wordconnectPointerId: null,
       crosswordDirection: "across",
       crosswordActive: null
     };
@@ -709,6 +717,12 @@ Beende diesen Satz:
       { id: "seal", locked: "🔒 Geheim", unlocked: "Briefe schreiben & versiegeln", unlockAt: 4 },
       { id: "art", locked: "🔒 Geheim", unlocked: "1x Gemeinsames Malen gießen", unlockAt: 5 },
       { id: "care", locked: "🔒 Geheim", unlocked: "Jede*r macht etwas für die andere Person", unlockAt: 6 }
+    ];
+
+    const WORDCONNECT_HINTS = [
+      "Tipp 1: Ein Wort ist LIEBE.",
+      "Tipp 2: Ein anderes Wort endet auf …E.",
+      "Tipp 3: Es gibt ein Wort doppelt im Raster (z. B. KUSS)."
     ];
 
     const ACTIVITY_CHOICES = [
@@ -875,14 +889,40 @@ Beende diesen Satz:
       wordconnectCurrent.textContent = "—";
       state.wordconnectFound = new Set();
       state.wordconnectPath = [];
+      state.wordconnectFailures = 0;
+      state.wordconnectHintsShown = 0;
+      wordconnectHints.style.display = "none";
+      wordconnectHintBtn.style.display = "inline-flex";
+      wordconnectHints.innerHTML = "";
 
       if (!wordconnectGrid.dataset.bound){
+        wordconnectGrid.addEventListener("pointerdown", (event) => {
+          const target = event.target.closest(".wordconnect-cell");
+          if (!target) return;
+          event.preventDefault();
+          const pointerId = event.pointerId;
+          state.wordconnectDragging = true;
+          state.wordconnectPointerId = pointerId;
+          target.setPointerCapture(pointerId);
+          startWordconnect(target);
+        });
         wordconnectGrid.addEventListener("pointermove", (event) => {
-          if (!state.wordconnectPath.length) return;
+          if (!state.wordconnectDragging) return;
+          if (state.wordconnectPointerId !== event.pointerId) return;
           const target = document.elementFromPoint(event.clientX, event.clientY);
           if (target && target.classList.contains("wordconnect-cell")){
             selectWordconnectCell(target);
           }
+        });
+        wordconnectGrid.addEventListener("pointerup", (event) => {
+          if (!state.wordconnectDragging) return;
+          if (state.wordconnectPointerId !== event.pointerId) return;
+          endWordconnect();
+        });
+        wordconnectGrid.addEventListener("pointercancel", (event) => {
+          if (!state.wordconnectDragging) return;
+          if (state.wordconnectPointerId !== event.pointerId) return;
+          endWordconnect();
         });
         wordconnectGrid.dataset.bound = "true";
       }
@@ -896,26 +936,17 @@ Beende diesen Satz:
           cell.dataset.row = String(r);
           cell.dataset.col = String(c);
           cell.setAttribute("aria-label", `Buchstabe ${cell.textContent}`);
-          cell.addEventListener("pointerdown", startWordconnect);
-          cell.addEventListener("pointerenter", moveWordconnect);
-          cell.addEventListener("pointerup", endWordconnect);
-          cell.addEventListener("pointercancel", endWordconnect);
           wordconnectGrid.appendChild(cell);
         }
       }
       updateWordconnectWords();
     }
 
-    function startWordconnect(event){
+    function startWordconnect(cell){
       ensureAudio();
       playChime("tick");
       state.wordconnectPath = [];
-      selectWordconnectCell(event.currentTarget);
-    }
-
-    function moveWordconnect(event){
-      if (!state.wordconnectPath.length) return;
-      selectWordconnectCell(event.currentTarget);
+      selectWordconnectCell(cell);
     }
 
     function selectWordconnectCell(cell){
@@ -948,10 +979,16 @@ Beende diesen Satz:
       } else {
         setToast("bad", "Noch nicht — probier weiter 💘");
         playChime("error");
+        state.wordconnectFailures += 1;
+        if (state.wordconnectFailures >= 2 && state.wordconnectFound.size === 0){
+          revealWordconnectHint();
+        }
       }
       wordconnectGrid.querySelectorAll(".wordconnect-cell").forEach((cell) => cell.classList.remove("active"));
       state.wordconnectPath = [];
       wordconnectCurrent.textContent = "—";
+      state.wordconnectDragging = false;
+      state.wordconnectPointerId = null;
     }
 
     function updateWordconnectWords(){
@@ -962,6 +999,14 @@ Beende diesen Satz:
           const done = found.includes(normalize(word));
           return `<span class="${done ? "found" : ""}">${done ? "✓" : "•"} ${done ? word : "???"}</span>`;
         }).join("");
+    }
+
+    function revealWordconnectHint(){
+      if (state.wordconnectHintsShown >= WORDCONNECT_HINTS.length) return;
+      wordconnectHints.style.display = "grid";
+      wordconnectHints.innerHTML = WORDCONNECT_HINTS.slice(0, state.wordconnectHintsShown + 1)
+        .map((hint) => `<span>${hint}</span>`).join("");
+      state.wordconnectHintsShown += 1;
     }
 
     function renderCrossword(){
@@ -1689,8 +1734,10 @@ Beende diesen Satz:
       clearCrossword();
     });
 
-    document.addEventListener("pointerup", () => {
-      endWordconnect();
+    wordconnectHintBtn.addEventListener("click", () => {
+      ensureAudio();
+      playChime("tap");
+      revealWordconnectHint();
     });
 
     muteBtn.addEventListener("click", () => {
