@@ -959,6 +959,7 @@ Beende diesen Satz:
         }
       }
       updateWordconnectWords();
+      revealWordconnectHint();
     }
 
     function startWordconnect(cell){
@@ -1391,6 +1392,10 @@ Beende diesen Satz:
         nowPlaying.style.display = "none";
         riddleMeta.textContent = "Rätsel 1/2";
         riddleMeta.style.display = "block";
+        state.wordconnectFound = new Set();
+        state.wordconnectPath = [];
+        state.wordconnectFailures = 0;
+        state.wordconnectHintsShown = 0;
         renderWordconnect();
       } else if (step.type === "crossword") {
         inputWrap.style.display = "none";
@@ -1480,6 +1485,10 @@ Beende diesen Satz:
       window.setTimeout(() => {
         state.idx += 1;
         if (state.idx < STEPS.length){
+          if (STEPS[state.idx].type === "wordconnect"){
+            state.wordconnectFound = new Set();
+            state.wordconnectPath = [];
+          }
           renderStep(state.idx);
           setStatus("Weiter…");
         } else {
