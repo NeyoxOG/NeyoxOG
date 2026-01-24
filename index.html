@@ -397,6 +397,8 @@
                   <button class="btn secondary" type="button" id="crosswordClearBtn">Felder leeren</button>
                 </div>
                 <div class="crossword-grid" id="crosswordGrid" aria-label="Kreuzworträtsel"></div>
+                <div class="wordconnect-words" id="crosswordHints" style="display:none"></div>
+                <button class="btn secondary" type="button" id="crosswordHintBtn">Hinweis zeigen</button>
                 <div class="crossword-clues" id="crosswordClues"></div>
               </div>
 
@@ -643,6 +645,8 @@ Beende diesen Satz:
     const crosswordDirection = document.getElementById("crosswordDirection");
     const crosswordClueActive = document.getElementById("crosswordClueActive");
     const crosswordClearBtn = document.getElementById("crosswordClearBtn");
+    const crosswordHints = document.getElementById("crosswordHints");
+    const crosswordHintBtn = document.getElementById("crosswordHintBtn");
     const form      = document.getElementById("answerForm");
     const inputWrap = document.getElementById("inputWrap");
     const input     = document.getElementById("answerInput");
@@ -695,6 +699,8 @@ Beende diesen Satz:
       wordconnectHintsShown: 0,
       wordconnectDragging: false,
       wordconnectPointerId: null,
+      crosswordFailures: 0,
+      crosswordHintsShown: 0,
       crosswordDirection: "across",
       crosswordActive: null
     };
@@ -723,6 +729,13 @@ Beende diesen Satz:
       "Tipp 1: Ein Wort ist NAHE (liegt komplett in einer Reihe).",
       "Tipp 2: Ein anderes Wort ist KUSS (ganz unten).",
       "Tipp 3: Das kurze Wort ist EHE (mit H in der Mitte)."
+    ];
+
+    const CROSSWORD_HINTS = [
+      "Tipp 1: Das obere Wort quer hat 5 Buchstaben und beginnt mit L.",
+      "Tipp 2: Das Wort in der Mitte quer hat 4 Buchstaben und ist etwas, das in uns schlägt.",
+      "Tipp 3: Rechts runter ist ein Wort, das nachklingt, wenn Gefühle bleiben.",
+      "Tipp 4: Das Wort runter bei Spalte 3 hat 4 Buchstaben und bedeutet Achtung/Respekt."
     ];
 
     const ACTIVITY_CHOICES = [
@@ -1007,6 +1020,14 @@ Beende diesen Satz:
       wordconnectHints.innerHTML = WORDCONNECT_HINTS.slice(0, state.wordconnectHintsShown + 1)
         .map((hint) => `<span>${hint}</span>`).join("");
       state.wordconnectHintsShown += 1;
+    }
+
+    function revealCrosswordHint(){
+      if (state.crosswordHintsShown >= CROSSWORD_HINTS.length) return;
+      crosswordHints.style.display = "grid";
+      crosswordHints.innerHTML = CROSSWORD_HINTS.slice(0, state.crosswordHintsShown + 1)
+        .map((hint) => `<span>${hint}</span>`).join("");
+      state.crosswordHintsShown += 1;
     }
 
     function renderCrossword(){
@@ -1336,6 +1357,11 @@ Beende diesen Satz:
         nowPlaying.style.display = "none";
         riddleMeta.textContent = "Rätsel 2/2";
         riddleMeta.style.display = "block";
+        state.crosswordFailures = 0;
+        state.crosswordHintsShown = 0;
+        crosswordHints.style.display = "none";
+        crosswordHints.innerHTML = "";
+        crosswordHintBtn.style.display = "inline-flex";
         renderCrossword();
       } else {
         inputWrap.style.display = "flex";
@@ -1703,6 +1729,10 @@ Beende diesen Satz:
       } else {
         if (step.type === "crossword"){
           markCrosswordValidation();
+          state.crosswordFailures += 1;
+          if (state.crosswordFailures >= 2){
+            revealCrosswordHint();
+          }
         }
         if (step.type === "wordconnect"){
           handleFailure(`Noch ${WORDCONNECT.required - state.wordconnectFound.size} Wörter fehlen 💘`);
@@ -1738,6 +1768,12 @@ Beende diesen Satz:
       ensureAudio();
       playChime("tap");
       revealWordconnectHint();
+    });
+
+    crosswordHintBtn.addEventListener("click", () => {
+      ensureAudio();
+      playChime("tap");
+      revealCrosswordHint();
     });
 
     muteBtn.addEventListener("click", () => {
