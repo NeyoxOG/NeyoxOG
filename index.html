@@ -129,6 +129,8 @@
       user-select:none;
     }
     .pill b{color:var(--text); font-weight:800;}
+    .pill.is-active{border-color:rgba(255,255,255,.45); background:rgba(255,255,255,.14); color:var(--text);}
+    .pill.is-done{border-color:rgba(53,208,127,.5); color:rgba(247,247,251,.9);}
 
     .riddle{position:relative; padding:0 24px 24px;}
     .panel{
@@ -144,6 +146,7 @@
     .panel.is-hidden{opacity:0; transform: translateY(8px);}
 
     .panel h3{margin:0; font-size:18px; letter-spacing:.2px;}
+    .riddle-meta{margin-top:6px; font-size:12px; color:rgba(247,247,251,.65);}
     .panel p{margin:10px 0 0; color:var(--muted); line-height:1.7; white-space:pre-line; font-size:15px;}
 
     .hint{
@@ -204,6 +207,20 @@
     .note li{list-style: disc;}
     .reward-list li{color:rgba(247,247,251,.72);}
     .reward-list li.unlocked{color:var(--text);}
+    .reward-list li.unlock-animate{animation: rewardPop .45s var(--ease);}
+    @keyframes rewardPop{0%{transform:scale(.96); box-shadow:0 0 0 rgba(255,255,255,0)} 60%{transform:scale(1.03); box-shadow:0 0 18px rgba(255,255,255,.2)} 100%{transform:scale(1)}}
+
+    .reward-badge{
+      display:none;
+      align-items:center; gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.2);
+      background:rgba(255,255,255,.08);
+      color:var(--text);
+      font-size:12px;
+    }
+    .reward-badge.show{display:inline-flex; animation: rewardPop .5s var(--ease);}
 
     .crossword{margin-top:16px; display:grid; gap:14px;}
     .crossword-grid{display:grid; grid-template-columns: repeat(5, 42px); gap:6px; justify-content:flex-start;}
@@ -211,13 +228,37 @@
       width:42px; height:42px; border-radius:10px; border:1px solid var(--line);
       background:rgba(255,255,255,.06); display:grid; place-items:center;
       font-weight:800; text-transform:uppercase;
+      position:relative;
     }
     .crossword-cell input{
       width:100%; height:100%; border:0; outline:none; background:transparent; color:var(--text);
       text-align:center; font-size:16px; text-transform:uppercase;
     }
-    .crossword-cell.block{background:rgba(255,255,255,.02); border:1px dashed rgba(255,255,255,.08);}
+    .crossword-cell.block{background:rgba(255,255,255,.02); border:1px dashed rgba(255,255,255,.12);}
+    .crossword-cell .cell-index{
+      position:absolute; top:4px; left:6px; font-size:9px; color:rgba(247,247,251,.6);
+    }
+    .crossword-cell.is-active{border-color:rgba(255,255,255,.6); box-shadow:0 0 0 2px rgba(255,255,255,.12);}
+    .crossword-cell.is-highlight{background:rgba(255,255,255,.12);}
+    .crossword-cell.is-correct{border-color:rgba(53,208,127,.5);}
+    .crossword-cell.is-wrong{border-color:rgba(255,183,3,.5);}
     .crossword-clues{display:grid; gap:8px; color:var(--muted); font-size:13px;}
+    .crossword-meta{display:flex; gap:10px; flex-wrap:wrap; font-size:12px; color:var(--muted);}
+    .crossword-meta span{padding:6px 10px; border-radius:12px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.04);}
+    .crossword-clue{cursor:pointer; display:flex; gap:8px; align-items:flex-start;}
+    .crossword-clue[aria-current="true"]{color:var(--text);}
+
+    .wordconnect{margin-top:16px; display:grid; gap:14px;}
+    .wordconnect-grid{display:grid; grid-template-columns: repeat(4, 64px); gap:10px; justify-content:flex-start;}
+    .wordconnect-cell{
+      width:64px; height:64px; border-radius:16px; border:1px solid var(--line);
+      background:rgba(255,255,255,.06); display:grid; place-items:center;
+      font-weight:800; font-size:18px; letter-spacing:.6px;
+    }
+    .wordconnect-cell.active{border-color:rgba(255,255,255,.6); background:rgba(255,255,255,.14);}
+    .wordconnect-current{font-weight:800; letter-spacing:.5px;}
+    .wordconnect-words{display:grid; gap:6px; font-size:13px; color:var(--muted);}
+    .wordconnect-words span.found{color:var(--text);}
 
     .miniRow{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;}
     .miniBtn{border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.06); color:rgba(247,247,251,.9); padding:10px 12px; min-height:44px; border-radius:14px; cursor:pointer; font-weight:800; user-select:none;}
@@ -300,10 +341,14 @@
           <div class="logo" aria-hidden="true"></div>
           <div class="title">
             <h1>Fia, eine kleine Reise 💘</h1>
-            <p>Von Collin — 6 Schritte, 1 Frage am Ende.</p>
+            <p>Von Collin — 7 Schritte, 1 Frage am Ende.</p>
           </div>
         </div>
-        <div class="chip" aria-live="polite"><span class="dot" aria-hidden="true"></span><span id="statusText">Bereit</span></div>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <div class="reward-badge" id="rewardBadge">+1 🎁</div>
+          <button class="btn secondary" type="button" id="muteBtn" aria-pressed="false" aria-label="Sound umschalten">Sound an 🔊</button>
+          <div class="chip" aria-live="polite"><span class="dot" aria-hidden="true"></span><span id="statusText">Bereit</span></div>
+        </div>
       </header>
 
       <div class="grid">
@@ -316,14 +361,15 @@
                 Ich wollte dir etwas geben, das man nicht kaufen kann.
                 Eine kleine Reise durch unsere Erinnerungen — und am Ende eine Frage.
               </p>
-              <div class="steps" aria-label="Schritte">
+              <div class="steps" aria-label="Schritte" id="stepPills">
                 <div class="pill"><b>0</b> Start</div>
                 <div class="pill"><b>1</b> Ort 📍</div>
                 <div class="pill"><b>2</b> Song 🎶</div>
-                <div class="pill"><b>3</b> Rätsel 💘</div>
-                <div class="pill"><b>4</b> Gefühl 🫶</div>
-                <div class="pill"><b>5</b> Zuhause 🏠</div>
-                <div class="pill"><b>6</b> Zukunft ✨</div>
+                <div class="pill"><b>3</b> Wörter 🔗</div>
+                <div class="pill"><b>4</b> Rätsel 💘</div>
+                <div class="pill"><b>5</b> Gefühl 🫶</div>
+                <div class="pill"><b>6</b> Zuhause 🏠</div>
+                <div class="pill"><b>7</b> Zukunft ✨</div>
               </div>
             </div>
           </div>
@@ -331,11 +377,23 @@
           <div class="riddle">
             <div class="panel" id="panel">
               <h3 id="stepTitle">Start</h3>
+              <div class="riddle-meta" id="riddleMeta" style="display:none"></div>
               <p id="stepText"></p>
 
               <div class="hint" id="hint"></div>
 
+              <div class="wordconnect" id="wordconnect" style="display:none" aria-live="polite">
+                <div class="wordconnect-grid" id="wordconnectGrid" aria-label="Wörter verbinden"></div>
+                <div class="wordconnect-current" id="wordconnectCurrent">—</div>
+                <div class="wordconnect-words" id="wordconnectWords"></div>
+              </div>
+
               <div class="crossword" id="crossword" style="display:none" aria-live="polite">
+                <div class="crossword-meta">
+                  <span id="crosswordDirection">Richtung: → Quer</span>
+                  <span id="crosswordClueActive">Hinweis: —</span>
+                  <button class="btn secondary" type="button" id="crosswordClearBtn">Felder leeren</button>
+                </div>
                 <div class="crossword-grid" id="crosswordGrid" aria-label="Kreuzworträtsel"></div>
                 <div class="crossword-clues" id="crosswordClues"></div>
               </div>
@@ -360,7 +418,7 @@
             <div class="stat">
               <div>
                 <div class="k">Fortschritt</div>
-                <div class="v"><span id="progressLabel">0</span>/6 gelöst</div>
+                <div class="v"><span id="progressLabel">0</span>/7 gelöst</div>
               </div>
               <div style="text-align:right">
                 <div class="k">Bonus</div>
@@ -405,12 +463,12 @@
             <div class="note" id="rewards">
               <b>Belohnungen (werden freigeschaltet):</b>
               <ul class="reward-list" aria-live="polite">
-                <li data-reward="photo">🔒 1x Foto-Date</li>
-                <li data-reward="challenge">🔒 Kleine Challenge: 10 Fotos, die eure Beziehung symbolisieren</li>
-                <li data-reward="letter">🔒 1x Brief an das „Wir in 5 Jahren“</li>
-                <li data-reward="seal">🔒 Briefe schreiben & versiegeln</li>
-                <li data-reward="art">🔒 1x Gemeinsames Malen gießen</li>
-                <li data-reward="care">🔒 Jede*r macht etwas für die andere Person</li>
+                <li data-reward="photo">🔒 Geheim</li>
+                <li data-reward="challenge">🔒 Geheim</li>
+                <li data-reward="letter">🔒 Geheim</li>
+                <li data-reward="seal">🔒 Geheim</li>
+                <li data-reward="art">🔒 Geheim</li>
+                <li data-reward="care">🔒 Geheim</li>
               </ul>
             </div>
 
@@ -449,7 +507,19 @@
 
     const FIRST_KISS_PLACE = "Brücke";
     const OUR_SONG = "Walzer";
-    const STEP_TOTAL = 6;
+    const STEP_TOTAL = 7;
+
+    const WORDCONNECT = {
+      size: 4,
+      letters: [
+        ["L","I","E","B"],
+        ["E","H","E","Z"],
+        ["N","A","H","E"],
+        ["K","U","S","S"]
+      ],
+      words: ["LIEBE","NAHE","KUSS","EHE"],
+      required: 4
+    };
 
     const CROSSWORD = {
       size: 5,
@@ -502,8 +572,17 @@ Wie heißt unser Song?`,
         success: "Natürlich 😭💖\nJedes Mal, wenn ich den höre, denke ich an dich."
       },
       {
+        type: "wordconnect",
+        title: "Schritt 3: Wörter verbinden",
+        text:
+`Ein Wort-Connect voller kleiner Erinnerungen.
+
+Verbinde die Buchstaben zu Wörtern, die zu uns passen.`,
+        hint: "Tipp: Liebe, Nähe, Wir-Gefühl. Mindestens 4 Wörter."
+      },
+      {
         type: "crossword",
-        title: "Schritt 3: Kreuzworträtsel",
+        title: "Schritt 4: Kreuzworträtsel",
         text:
 `Ein kleines Kreuzworträtsel über Liebe.
 
@@ -512,7 +591,7 @@ Nimm dir einen Moment und fülle die Felder.`,
       },
       {
         type: "free",
-        title: "Schritt 4: Gefühl",
+        title: "Schritt 5: Gefühl",
         text:
 `Wenn unser Song läuft…
 
@@ -522,7 +601,7 @@ was fühlst du dann als Erstes?`,
       },
       {
         type: "free",
-        title: "Schritt 5: Zuhause",
+        title: "Schritt 6: Zuhause",
         text:
 `Vervollständige den Satz ehrlich:
 
@@ -532,7 +611,7 @@ was fühlst du dann als Erstes?`,
       },
       {
         type: "free",
-        title: "Schritt 6: Zukunft",
+        title: "Schritt 7: Zukunft",
         text:
 `Letzter Schritt.
 
@@ -547,10 +626,19 @@ Beende diesen Satz:
     const panel = document.getElementById("panel");
     const stepTitle = document.getElementById("stepTitle");
     const stepText  = document.getElementById("stepText");
+    const riddleMeta = document.getElementById("riddleMeta");
     const hintEl    = document.getElementById("hint");
+    const stepPills = document.getElementById("stepPills");
+    const wordconnect = document.getElementById("wordconnect");
+    const wordconnectGrid = document.getElementById("wordconnectGrid");
+    const wordconnectCurrent = document.getElementById("wordconnectCurrent");
+    const wordconnectWords = document.getElementById("wordconnectWords");
     const crossword = document.getElementById("crossword");
     const crosswordGrid = document.getElementById("crosswordGrid");
     const crosswordClues = document.getElementById("crosswordClues");
+    const crosswordDirection = document.getElementById("crosswordDirection");
+    const crosswordClueActive = document.getElementById("crosswordClueActive");
+    const crosswordClearBtn = document.getElementById("crosswordClearBtn");
     const form      = document.getElementById("answerForm");
     const inputWrap = document.getElementById("inputWrap");
     const input     = document.getElementById("answerInput");
@@ -573,6 +661,8 @@ Beende diesen Satz:
     const countdown = document.getElementById("countdown");
     const revealNote = document.getElementById("revealNote");
     const rewardsList = document.querySelector(".reward-list");
+    const rewardBadge = document.getElementById("rewardBadge");
+    const muteBtn = document.getElementById("muteBtn");
 
     const overlay   = document.getElementById("overlay");
     const modal     = document.getElementById("modal");
@@ -591,29 +681,34 @@ Beende diesen Satz:
       lastFocus: null,
       playerProgress: 0,
       playerTimer: null,
-      activityUnlocked: false,
       activityChoice: null,
       audioReady: false,
-      audioCtx: null
+      audioCtx: null,
+      muted: false,
+      wordconnectFound: new Set(),
+      wordconnectPath: [],
+      crosswordDirection: "across",
+      crosswordActive: null
     };
 
     const REVEALS = [
       "",
       `Freigeschaltet: ${FIRST_KISS_PLACE} — unser Ort.`,
       `Freigeschaltet: ${OUR_SONG} — Provinz.`,
+      "Freigeschaltet: Wörter finden leichter zueinander als wir je dachten.",
       "Freigeschaltet: Das kleine Rätsel gehört jetzt dir.",
       "Freigeschaltet: Deine Worte fühlen sich an wie eine Umarmung.",
       "Freigeschaltet: Zuhause ist kein Ort — es ist dieses Gefühl mit dir.",
       "Freigeschaltet: Zukunft klingt plötzlich leicht und wunderschön."
     ];
 
-    const REWARD_ORDER = [
-      "photo",
-      "challenge",
-      "letter",
-      "seal",
-      "art",
-      "care"
+    const REWARDS = [
+      { id: "photo", locked: "🔒 Geheim", unlocked: "1x Foto-Date", unlockAt: 1 },
+      { id: "challenge", locked: "🔒 Geheim", unlocked: "Kleine Challenge: 10 Fotos, die eure Beziehung symbolisieren", unlockAt: 2 },
+      { id: "letter", locked: "🔒 Geheim", unlocked: "1x Brief an das „Wir in 5 Jahren“", unlockAt: 3 },
+      { id: "seal", locked: "🔒 Geheim", unlocked: "Briefe schreiben & versiegeln", unlockAt: 4 },
+      { id: "art", locked: "🔒 Geheim", unlocked: "1x Gemeinsames Malen gießen", unlockAt: 5 },
+      { id: "care", locked: "🔒 Geheim", unlocked: "Jede*r macht etwas für die andere Person", unlockAt: 6 }
     ];
 
     const ACTIVITY_CHOICES = [
@@ -711,15 +806,28 @@ Beende diesen Satz:
 
     function updateRewards(){
       if (!rewardsList) return;
-      const unlocked = Math.min(state.solved, REWARD_ORDER.length);
-      REWARD_ORDER.forEach((reward, index) => {
-        const item = rewardsList.querySelector(`[data-reward="${reward}"]`);
+      REWARDS.forEach((reward) => {
+        const item = rewardsList.querySelector(`[data-reward="${reward.id}"]`);
         if (!item) return;
-        if (index < unlocked){
-          item.classList.add("unlocked");
-          item.textContent = item.textContent.replace("🔒", "✅");
+        const unlocked = state.solved >= reward.unlockAt;
+        if (unlocked && !item.classList.contains("unlocked")){
+          item.classList.add("unlocked", "unlock-animate");
+          item.textContent = `✅ ${reward.unlocked}`;
+          showRewardBadge();
+          setToast("ok", "🎁 Belohnung freigeschaltet!");
+          playChime("reward");
+          burstConfetti(60);
+          window.setTimeout(() => item.classList.remove("unlock-animate"), 520);
+        } else if (!unlocked){
+          item.textContent = reward.locked;
+          item.classList.remove("unlocked");
         }
       });
+    }
+
+    function showRewardBadge(){
+      rewardBadge.classList.add("show");
+      window.setTimeout(() => rewardBadge.classList.remove("show"), 1200);
     }
 
     function ensureAudio(){
@@ -730,19 +838,130 @@ Beende diesen Satz:
     }
 
     function playChime(type){
-      if (!state.audioReady || !state.audioCtx) return;
+      if (!state.audioReady || !state.audioCtx || state.muted) return;
       const ctx = state.audioCtx;
       const now = ctx.currentTime;
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
-      osc.type = "sine";
-      osc.frequency.value = type === "final" ? 660 : 520;
+      osc.type = type === "error" ? "triangle" : "sine";
+      const configs = {
+        click: { freq: 420, dur: 0.12, gain: 0.04 },
+        tick: { freq: 480, dur: 0.08, gain: 0.03 },
+        tap: { freq: 500, dur: 0.1, gain: 0.035 },
+        reward: { freq: 720, dur: 0.25, gain: 0.06 },
+        success: { freq: 560, dur: 0.4, gain: 0.08 },
+        error: { freq: 220, dur: 0.25, gain: 0.05 },
+        final: { freq: 660, dur: 0.6, gain: 0.1 }
+      };
+      const config = configs[type] || configs.click;
+      osc.frequency.value = config.freq;
       gain.gain.value = 0.0001;
-      gain.gain.exponentialRampToValueAtTime(0.08, now + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
+      gain.gain.exponentialRampToValueAtTime(config.gain, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + config.dur);
       osc.connect(gain).connect(ctx.destination);
       osc.start(now);
-      osc.stop(now + 0.55);
+      osc.stop(now + config.dur + 0.05);
+    }
+
+    function toggleMute(){
+      state.muted = !state.muted;
+      muteBtn.setAttribute("aria-pressed", String(state.muted));
+      muteBtn.textContent = state.muted ? "Sound aus 🔇" : "Sound an 🔊";
+    }
+
+    function renderWordconnect(){
+      wordconnectGrid.innerHTML = "";
+      wordconnectWords.innerHTML = "";
+      wordconnectCurrent.textContent = "—";
+      state.wordconnectFound = new Set();
+      state.wordconnectPath = [];
+
+      if (!wordconnectGrid.dataset.bound){
+        wordconnectGrid.addEventListener("pointermove", (event) => {
+          if (!state.wordconnectPath.length) return;
+          const target = document.elementFromPoint(event.clientX, event.clientY);
+          if (target && target.classList.contains("wordconnect-cell")){
+            selectWordconnectCell(target);
+          }
+        });
+        wordconnectGrid.dataset.bound = "true";
+      }
+
+      for (let r = 0; r < WORDCONNECT.size; r++){
+        for (let c = 0; c < WORDCONNECT.size; c++){
+          const cell = document.createElement("button");
+          cell.type = "button";
+          cell.className = "wordconnect-cell";
+          cell.textContent = WORDCONNECT.letters[r][c];
+          cell.dataset.row = String(r);
+          cell.dataset.col = String(c);
+          cell.setAttribute("aria-label", `Buchstabe ${cell.textContent}`);
+          cell.addEventListener("pointerdown", startWordconnect);
+          cell.addEventListener("pointerenter", moveWordconnect);
+          cell.addEventListener("pointerup", endWordconnect);
+          cell.addEventListener("pointercancel", endWordconnect);
+          wordconnectGrid.appendChild(cell);
+        }
+      }
+      updateWordconnectWords();
+    }
+
+    function startWordconnect(event){
+      ensureAudio();
+      playChime("tick");
+      state.wordconnectPath = [];
+      selectWordconnectCell(event.currentTarget);
+    }
+
+    function moveWordconnect(event){
+      if (!state.wordconnectPath.length) return;
+      selectWordconnectCell(event.currentTarget);
+    }
+
+    function selectWordconnectCell(cell){
+      const row = Number(cell.dataset.row);
+      const col = Number(cell.dataset.col);
+      const key = `${row}-${col}`;
+      if (state.wordconnectPath.some((item) => item.key === key)) return;
+      const last = state.wordconnectPath[state.wordconnectPath.length - 1];
+      if (last && (Math.abs(last.row - row) > 1 || Math.abs(last.col - col) > 1)){
+        return;
+      }
+      state.wordconnectPath.push({ row, col, key, letter: cell.textContent });
+      cell.classList.add("active");
+      wordconnectCurrent.textContent = state.wordconnectPath.map((item) => item.letter).join("");
+    }
+
+    function endWordconnect(){
+      if (!state.wordconnectPath.length) return;
+      const word = state.wordconnectPath.map((item) => item.letter).join("");
+      const normalized = normalize(word);
+      if (WORDCONNECT.words.map((w) => normalize(w)).includes(normalized)){
+        if (!state.wordconnectFound.has(normalized)){
+          state.wordconnectFound.add(normalized);
+          setToast("ok", `✓ ${word} gefunden`);
+          playChime("reward");
+          updateWordconnectWords();
+        } else {
+          setToast("bad", "Schon gefunden 💞");
+        }
+      } else {
+        setToast("bad", "Noch nicht — probier weiter 💘");
+        playChime("error");
+      }
+      wordconnectGrid.querySelectorAll(".wordconnect-cell").forEach((cell) => cell.classList.remove("active"));
+      state.wordconnectPath = [];
+      wordconnectCurrent.textContent = "—";
+    }
+
+    function updateWordconnectWords(){
+      const goal = WORDCONNECT.required;
+      const found = Array.from(state.wordconnectFound);
+      wordconnectWords.innerHTML = `<div><b>Gefunden:</b> ${found.length}/${goal}</div>` +
+        WORDCONNECT.words.map((word) => {
+          const done = found.includes(normalize(word));
+          return `<span class="${done ? "found" : ""}">${done ? "✓" : "•"} ${done ? word : "???"}</span>`;
+        }).join("");
     }
 
     function renderCrossword(){
@@ -750,6 +969,10 @@ Beende diesen Satz:
       crosswordClues.innerHTML = "";
       const size = CROSSWORD.size;
       const blockSet = new Set(CROSSWORD.blocks.map(([r,c]) => `${r}-${c}`));
+      const startMap = new Map();
+      CROSSWORD.words.forEach((word, idx) => {
+        startMap.set(`${word.row}-${word.col}`, idx + 1);
+      });
 
       for (let r = 0; r < size; r++){
         for (let c = 0; c < size; c++){
@@ -758,13 +981,24 @@ Beende diesen Satz:
           if (blockSet.has(`${r}-${c}`)){
             cell.classList.add("block");
           } else {
+            if (startMap.has(`${r}-${c}`)){
+              const index = document.createElement("span");
+              index.className = "cell-index";
+              index.textContent = String(startMap.get(`${r}-${c}`));
+              cell.appendChild(index);
+            }
             const input = document.createElement("input");
             input.maxLength = 1;
             input.setAttribute("aria-label", `Feld ${r + 1}, ${c + 1}`);
             input.addEventListener("input", (e) => {
               const value = e.target.value.replace(/[^a-zA-Z]/g, "").toUpperCase();
               e.target.value = value;
+              handleCrosswordInput(r, c, value);
             });
+            input.addEventListener("focus", () => setActiveCrosswordCell(r, c, false));
+            input.addEventListener("click", () => setActiveCrosswordCell(r, c, true));
+            input.addEventListener("keydown", (event) => handleCrosswordKeydown(event, r, c));
+            input.addEventListener("paste", (event) => handleCrosswordPaste(event, r, c));
             cell.appendChild(input);
           }
           crosswordGrid.appendChild(cell);
@@ -776,10 +1010,18 @@ Beende diesen Satz:
       crosswordClues.appendChild(clueTitle);
       CROSSWORD.words.forEach((word, idx) => {
         const clue = document.createElement("div");
+        clue.className = "crossword-clue";
+        clue.setAttribute("data-index", String(idx));
         const dir = word.dir === "across" ? "→" : "↓";
         clue.textContent = `${idx + 1}${dir} ${word.clue}`;
+        clue.addEventListener("click", () => {
+          ensureAudio();
+          playChime("tap");
+          setActiveCrosswordWord(CROSSWORD.words[idx]);
+        });
         crosswordClues.appendChild(clue);
       });
+      setActiveCrosswordWord(CROSSWORD.words[0]);
     }
 
     function validateCrossword(){
@@ -805,8 +1047,183 @@ Beende diesen Satz:
       });
     }
 
+    function markCrosswordValidation(){
+      const size = CROSSWORD.size;
+      const cells = crosswordGrid.querySelectorAll(".crossword-cell");
+      const getInput = (r,c) => {
+        const cell = cells[r * size + c];
+        return cell ? cell.querySelector("input") : null;
+      };
+      CROSSWORD.words.forEach((word) => {
+        for (let i = 0; i < word.answer.length; i++){
+          const r = word.row + (word.dir === "down" ? i : 0);
+          const c = word.col + (word.dir === "across" ? i : 0);
+          const input = getInput(r,c);
+          const cell = cells[r * size + c];
+          if (!input || !cell) continue;
+          if (!input.value) continue;
+          if (input.value === word.answer[i]){
+            cell.classList.add("is-correct");
+            window.setTimeout(() => cell.classList.remove("is-correct"), 500);
+          } else {
+            cell.classList.add("is-wrong");
+            window.setTimeout(() => cell.classList.remove("is-wrong"), 500);
+          }
+        }
+      });
+    }
+
+    function handleCrosswordInput(row, col, value){
+      ensureAudio();
+      if (value) playChime("tick");
+      if (!value) return;
+      moveCrosswordCursor(row, col, 1);
+      checkCrosswordWordComplete(row, col);
+    }
+
+    function handleCrosswordKeydown(event, row, col){
+      if (event.key === "Backspace" && !event.target.value){
+        event.preventDefault();
+        moveCrosswordCursor(row, col, -1, true);
+        return;
+      }
+      if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(event.key)){
+        event.preventDefault();
+        const delta = {
+          ArrowUp: [-1,0],
+          ArrowDown: [1,0],
+          ArrowLeft: [0,-1],
+          ArrowRight: [0,1]
+        }[event.key];
+        focusCrosswordCell(row + delta[0], col + delta[1]);
+      }
+    }
+
+    function handleCrosswordPaste(event, row, col){
+      event.preventDefault();
+      const text = (event.clipboardData.getData("text") || "").toUpperCase().replace(/[^A-Z]/g, "");
+      if (!text) return;
+      const cells = getWordCellsForDirection(row, col, state.crosswordDirection);
+      text.split("").forEach((char, index) => {
+        const target = cells[index];
+        if (!target) return;
+        target.input.value = char;
+      });
+      const last = cells[Math.min(text.length - 1, cells.length - 1)];
+      if (last) last.input.focus();
+    }
+
+    function setActiveCrosswordCell(row, col, toggle){
+      const cell = state.crosswordActive;
+      if (cell && cell.row === row && cell.col === col && toggle){
+        state.crosswordDirection = state.crosswordDirection === "across" ? "down" : "across";
+        playChime("tap");
+      }
+      state.crosswordActive = { row, col };
+      updateCrosswordHighlight();
+    }
+
+    function setActiveCrosswordWord(word){
+      state.crosswordDirection = word.dir;
+      state.crosswordActive = { row: word.row, col: word.col };
+      focusCrosswordCell(word.row, word.col);
+      updateCrosswordHighlight(word);
+    }
+
+    function updateCrosswordHighlight(selectedWord){
+      const cells = crosswordGrid.querySelectorAll(".crossword-cell");
+      cells.forEach((cell) => cell.classList.remove("is-active", "is-highlight"));
+      const word = selectedWord || findWordForCell(state.crosswordActive?.row, state.crosswordActive?.col, state.crosswordDirection);
+      if (!word) return;
+      const wordCells = getWordCells(word);
+      wordCells.forEach(({ cell }) => cell.classList.add("is-highlight"));
+      const activeIndex = state.crosswordActive ? state.crosswordActive.row * CROSSWORD.size + state.crosswordActive.col : -1;
+      if (cells[activeIndex]) cells[activeIndex].classList.add("is-active");
+      crosswordDirection.textContent = `Richtung: ${state.crosswordDirection === "across" ? "→ Quer" : "↓ Runter"}`;
+      crosswordClueActive.textContent = `Hinweis: ${word.clue}`;
+      crosswordClues.querySelectorAll(".crossword-clue").forEach((clue, idx) => {
+        clue.setAttribute("aria-current", String(CROSSWORD.words[idx] === word));
+      });
+    }
+
+    function getWordCells(word){
+      const cells = [];
+      for (let i = 0; i < word.answer.length; i++){
+        const r = word.row + (word.dir === "down" ? i : 0);
+        const c = word.col + (word.dir === "across" ? i : 0);
+        const cell = crosswordGrid.children[r * CROSSWORD.size + c];
+        const input = cell.querySelector("input");
+        cells.push({ cell, input, row: r, col: c });
+      }
+      return cells;
+    }
+
+    function getWordCellsForDirection(row, col, direction){
+      const word = findWordForCell(row, col, direction);
+      return word ? getWordCells(word) : [];
+    }
+
+    function findWordForCell(row, col, direction){
+      if (row === null || row === undefined) return null;
+      return CROSSWORD.words.find((word) => {
+        if (word.dir !== direction) return false;
+        const length = word.answer.length;
+        const inRow = direction === "across" && row === word.row && col >= word.col && col < word.col + length;
+        const inCol = direction === "down" && col === word.col && row >= word.row && row < word.row + length;
+        return inRow || inCol;
+      }) || null;
+    }
+
+    function moveCrosswordCursor(row, col, delta, backspace){
+      const wordCells = getWordCellsForDirection(row, col, state.crosswordDirection);
+      if (!wordCells.length) return;
+      const index = wordCells.findIndex((cell) => cell.row === row && cell.col === col);
+      const target = wordCells[index + delta];
+      if (target){
+        if (backspace) target.input.value = "";
+        target.input.focus();
+      }
+    }
+
+    function focusCrosswordCell(row, col){
+      const cell = crosswordGrid.children[row * CROSSWORD.size + col];
+      const input = cell ? cell.querySelector("input") : null;
+      if (input) input.focus();
+    }
+
+    function checkCrosswordWordComplete(row, col){
+      const word = findWordForCell(row, col, state.crosswordDirection);
+      if (!word) return;
+      const wordCells = getWordCells(word);
+      const filled = wordCells.every(({ input }) => input.value);
+      if (!filled) return;
+      const correct = wordCells.every(({ input }, index) => input.value === word.answer[index]);
+      if (correct){
+        wordCells.forEach(({ cell }) => cell.classList.add("is-correct"));
+        playChime("reward");
+        window.setTimeout(() => wordCells.forEach(({ cell }) => cell.classList.remove("is-correct")), 600);
+      }
+    }
+
+    function clearCrossword(){
+      if (!confirm("Felder wirklich leeren?")) return;
+      crosswordGrid.querySelectorAll("input").forEach((input) => {
+        input.value = "";
+      });
+      setToast("bad", "Felder geleert.");
+    }
+
     function setStatus(text){
       statusText.textContent = text;
+    }
+
+    function updateStepPills(){
+      if (!stepPills) return;
+      const pills = Array.from(stepPills.children);
+      pills.forEach((pill, index) => {
+        pill.classList.toggle("is-active", index === state.idx);
+        pill.classList.toggle("is-done", index < state.idx);
+      });
     }
 
     function animateSwap(update){
@@ -820,6 +1237,9 @@ Beende diesen Satz:
     function focusPrimary(){
       if (STEPS[state.idx].type === "intro"){
         submitBtn.focus();
+      } else if (STEPS[state.idx].type === "wordconnect") {
+        const firstCell = wordconnectGrid.querySelector(".wordconnect-cell");
+        if (firstCell) firstCell.focus();
       } else if (STEPS[state.idx].type === "crossword") {
         const firstInput = crosswordGrid.querySelector("input");
         if (firstInput) firstInput.focus();
@@ -836,6 +1256,7 @@ Beende diesen Satz:
         stepText.textContent  = step.text;
         hintEl.textContent    = step.hint || "";
         hintEl.style.display  = "none";
+        riddleMeta.style.display = "none";
         input.value = "";
         hideToast();
       });
@@ -843,31 +1264,52 @@ Beende diesen Satz:
       if (step.type === "intro"){
         inputWrap.style.display = "none";
         crossword.style.display = "none";
+        wordconnect.style.display = "none";
+        riddleMeta.style.display = "none";
         submitBtn.textContent = "Start ➜";
         helpBtn.style.display = "inline-flex";
         setStatus("Start");
         nowPlaying.style.display = "none";
-      } else if (step.type === "crossword") {
+      } else if (step.type === "wordconnect") {
         inputWrap.style.display = "none";
-        crossword.style.display = "grid";
+        crossword.style.display = "none";
+        wordconnect.style.display = "grid";
         submitBtn.textContent = "Prüfen ➜";
         helpBtn.style.display = "inline-flex";
         setStatus("Im Rätsel-Modus");
         nowPlaying.style.display = "none";
+        riddleMeta.textContent = "Rätsel 1/2";
+        riddleMeta.style.display = "block";
+        renderWordconnect();
+      } else if (step.type === "crossword") {
+        inputWrap.style.display = "none";
+        crossword.style.display = "grid";
+        wordconnect.style.display = "none";
+        submitBtn.textContent = "Prüfen ➜";
+        helpBtn.style.display = "inline-flex";
+        setStatus("Im Rätsel-Modus");
+        nowPlaying.style.display = "none";
+        riddleMeta.textContent = "Rätsel 2/2";
+        riddleMeta.style.display = "block";
         renderCrossword();
       } else {
         inputWrap.style.display = "flex";
         crossword.style.display = "none";
+        wordconnect.style.display = "none";
         submitBtn.textContent = "Weiter ➜";
         helpBtn.style.display = "inline-flex";
         setStatus("Im Rätsel-Modus");
         nowPlaying.style.display = step.title.includes("Song") ? "block" : "none";
       }
 
+      updateStepPills();
       window.setTimeout(focusPrimary, 220);
     }
 
     function validateAnswer(answer){
+      if (STEPS[state.idx].type === "wordconnect"){
+        return state.wordconnectFound.size >= WORDCONNECT.required;
+      }
       if (STEPS[state.idx].type === "crossword"){
         return validateCrossword();
       }
@@ -887,6 +1329,9 @@ Beende diesen Satz:
       }
       if (step.type === "crossword"){
         return "Wunderschön gelöst. Liebe hat viele Wege — ihr seid einer davon. 💘";
+      }
+      if (step.type === "wordconnect"){
+        return "So viele Worte gefunden — und jedes davon passt zu uns. 💞";
       }
       if (step.title.includes("Ort")){
         return `Ja… genau dort: ${FIRST_KISS_PLACE} 🥹💗\nManche Orte verändern alles.`;
@@ -908,9 +1353,6 @@ Beende diesen Satz:
         revealNote.style.display = "block";
         revealNote.textContent = REVEALS[state.idx];
       }
-      if (step.type === "crossword"){
-        state.activityUnlocked = true;
-      }
       if (step.title.includes("Song")){
         playerTitle.textContent = `${OUR_SONG} — Provinz`;
         playerSub.textContent = "Freigeschaltet • Unser Song";
@@ -928,17 +1370,20 @@ Beende diesen Satz:
       }, 900);
     }
 
-    function handleFailure(){
+    function handleFailure(message){
       const variants = [
         "Fast… probier’s nochmal 😄",
         "Hmm… ich glaub du weißt es 😌",
         "Nochmal – du bist ganz nah dran 💘",
         "Kleiner Tipp: manchmal reicht ein Wort 😉"
       ];
-      setToast("bad", variants[Math.floor(Math.random()*variants.length)]);
+      setToast("bad", message || variants[Math.floor(Math.random()*variants.length)]);
+      playChime("error");
       setStatus("Noch nicht");
-      input.focus();
-      input.select();
+      if (STEPS[state.idx].type === "free" || STEPS[state.idx].type === "quiz"){
+        input.focus();
+        input.select();
+      }
     }
 
     function openOverlay(){
@@ -978,11 +1423,8 @@ Beende diesen Satz:
     }
 
     function getUnlockedRewards(){
-      const unlocked = Math.min(state.solved, REWARD_ORDER.length);
-      return REWARD_ORDER.slice(0, unlocked).map((reward) => {
-        const item = rewardsList.querySelector(`[data-reward="${reward}"]`);
-        return item ? item.textContent.replace("✅ ", "") : "";
-      }).filter(Boolean);
+      return REWARDS.filter((reward) => state.solved >= reward.unlockAt)
+        .map((reward) => reward.unlocked);
     }
 
     function openFinalStage1(){
@@ -994,18 +1436,18 @@ Beende diesen Satz:
         `weil du für mich nicht einfach nur meine Freundin bist…\n\n`+
         `<b>sondern mein Lieblingsmensch.</b>`;
 
-      if (state.activityUnlocked){
-        activityWrap.style.display = "block";
-        renderActivityChoices();
-      } else {
-        activityWrap.style.display = "none";
-      }
+      activityWrap.style.display = "block";
+      renderActivityChoices();
 
       finalActions.innerHTML = "";
       const btn = document.createElement("button");
       btn.className = "btn big";
       btn.textContent = "Was willst du mich fragen? 🥺";
-      btn.addEventListener("click", openFinalStage2);
+      btn.addEventListener("click", () => {
+        ensureAudio();
+        playChime("click");
+        openFinalStage2();
+      });
       finalActions.appendChild(btn);
       finalHint.textContent = "";
       btn.focus();
@@ -1064,6 +1506,8 @@ Beende diesen Satz:
       });
 
       no.addEventListener("click", () => {
+        ensureAudio();
+        playChime("click");
         closeOverlay();
         state.idx = 0;
         state.solved = 0;
@@ -1145,10 +1589,9 @@ Beende diesen Satz:
     window.addEventListener("resize", resize);
     resize();
 
-    function burstConfetti(){
+    function burstConfetti(count = 200){
       confetti = [];
-      const n = 200;
-      for(let i=0;i<n;i++){
+      for(let i=0;i<count;i++){
         confetti.push({
           x: canvas.width/2,
           y: canvas.height*0.22,
@@ -1188,6 +1631,7 @@ Beende diesen Satz:
 
     helpBtn.addEventListener("click", () => {
       ensureAudio();
+      playChime("click");
       if (hintEl.textContent.trim().length){
         hintEl.style.display = "block";
       }
@@ -1197,6 +1641,7 @@ Beende diesen Satz:
     form.addEventListener("submit", (e) => {
       e.preventDefault();
       ensureAudio();
+      playChime("click");
       const step = STEPS[state.idx];
 
       if (step.type === "intro"){
@@ -1211,6 +1656,13 @@ Beende diesen Satz:
       if (validateAnswer(input.value)){
         handleSuccess(input.value);
       } else {
+        if (step.type === "crossword"){
+          markCrosswordValidation();
+        }
+        if (step.type === "wordconnect"){
+          handleFailure(`Noch ${WORDCONNECT.required - state.wordconnectFound.size} Wörter fehlen 💘`);
+          return;
+        }
         handleFailure();
       }
     });
@@ -1227,7 +1679,24 @@ Beende diesen Satz:
 
     playerBtn.addEventListener("click", () => {
       ensureAudio();
+      playChime("click");
       togglePlayer();
+    });
+
+    crosswordClearBtn.addEventListener("click", () => {
+      ensureAudio();
+      playChime("click");
+      clearCrossword();
+    });
+
+    document.addEventListener("pointerup", () => {
+      endWordconnect();
+    });
+
+    muteBtn.addEventListener("click", () => {
+      ensureAudio();
+      toggleMute();
+      playChime("tap");
     });
 
     setCountdown();
