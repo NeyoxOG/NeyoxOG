@@ -141,6 +141,15 @@
     .btn.secondary{background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.16); box-shadow:none;} 
     .btn.ghost{background:transparent; border:1px solid rgba(255,255,255,.16); box-shadow:none;} 
     .btn:active{transform:translateY(1px) scale(.98)}
+    .pill{border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.06); color:var(--text); padding:8px 12px; border-radius:999px; display:inline-flex; align-items:center; gap:8px; font-weight:600;}
+    .account-avatar{width:26px; height:26px; border-radius:50%; object-fit:cover; border:1px solid rgba(255,255,255,.2);}
+    .google-mark{display:inline-flex; font-weight:700; letter-spacing:.2px;}
+    .google-mark span{display:inline-block;}
+    .g-blue{color:#4285f4;}
+    .g-red{color:#ea4335;}
+    .g-yellow{color:#fbbc05;}
+    .g-green{color:#34a853;}
+    .status-toast{margin-left:8px; font-size:12px; color:var(--muted);}
 
     @media (prefers-reduced-motion: reduce){
       .heart{animation:none}
@@ -167,7 +176,8 @@
         <span id="clock">00:00</span>
       </div>
       <div class="status-right">
-        <button class="pill" id="accountBtn" aria-label="Account">👤 Gast · Anmelden</button>
+        <button class="pill" id="accountBtn" aria-label="Account">👤 Mit Google anmelden</button>
+        <span class="status-toast" id="loginError" style="display:none;"></span>
         <span id="userLabel">Fia 🌙</span>
         <span>🔋</span>
       </div>
@@ -344,8 +354,19 @@
   <div class="panel" id="panelAccount" aria-modal="true" role="dialog">
     <div class="panel-card">
       <h3>Account</h3>
-      <p class="meta" id="accountMeta">—</p>
+      <div class="card" style="display:flex; gap:12px; align-items:center;">
+        <img id="accountAvatar" class="account-avatar" alt="Avatar" />
+        <div>
+          <div id="accountName" style="font-weight:600;">—</div>
+          <div class="meta" id="accountEmail">—</div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:12px;">
+        <div class="meta">Rolle</div>
+        <div id="accountRole" style="font-weight:600;">—</div>
+      </div>
       <div style="display:flex; gap:8px; margin-top:12px; justify-content:flex-end;">
+        <button class="btn secondary" id="accountAdminBtn" style="display:none;">Admin-Menü</button>
         <button class="btn secondary" id="logoutBtn">Logout</button>
         <button class="btn secondary" data-close="account">Schließen</button>
       </div>
@@ -483,8 +504,13 @@
       messageToast: document.getElementById("messageToast"),
       openRewards: document.getElementById("openRewards"),
       accountBtn: document.getElementById("accountBtn"),
+      loginError: document.getElementById("loginError"),
       panelAccount: document.getElementById("panelAccount"),
-      accountMeta: document.getElementById("accountMeta"),
+      accountAvatar: document.getElementById("accountAvatar"),
+      accountName: document.getElementById("accountName"),
+      accountEmail: document.getElementById("accountEmail"),
+      accountRole: document.getElementById("accountRole"),
+      accountAdminBtn: document.getElementById("accountAdminBtn"),
       logoutBtn: document.getElementById("logoutBtn"),
       panelAdmin: document.getElementById("panelAdmin"),
       adminDock: document.getElementById("adminDock"),
@@ -691,21 +717,66 @@
     }
 
     function updateAccountUI(){
-      const roleLabel = authState.role === "admin" ? "🛠 Admin" : authState.role === "user" ? "✨ User" : "👤 Gast";
-      const name = authState.user?.user_metadata?.full_name || authState.user?.email || "Gast";
-      elements.accountBtn.textContent = authState.role === "guest" ? "👤 Gast · Anmelden" : `${roleLabel} · ${name}`;
+      const displayName = authState.user?.user_metadata?.full_name
+        || authState.user?.user_metadata?.name
+        || authState.user?.email
+        || "Gast";
+      const email = authState.user?.email || "—";
+      const avatar = authState.user?.user_metadata?.avatar_url
+        || authState.user?.user_metadata?.picture
+        || "";
+      if (authState.role === "guest") {
+        elements.accountBtn.innerHTML = `
+          <span class="google-mark" aria-hidden="true">
+            <span class="g-blue">G</span><span class="g-red">o</span><span class="g-yellow">o</span><span class="g-blue">g</span><span class="g-green">l</span><span class="g-red">e</span>
+          </span>
+          <span>👤 Mit Google anmelden</span>
+        `;
+        elements.accountBtn.setAttribute("aria-label", "Mit Google anmelden");
+      } else {
+        const avatarImg = avatar ? `<img class="account-avatar" src="${avatar}" alt="" />` : "👤";
+        const roleLabel = authState.role === "admin" ? "Admin" : "User";
+        elements.accountBtn.innerHTML = `${avatarImg}<span>${displayName} · ${roleLabel}</span>`;
+        elements.accountBtn.setAttribute("aria-label", "Account öffnen");
+      }
       elements.adminDock.style.display = authState.role === "admin" ? "grid" : "none";
       elements.guestOverlay.style.display = authState.role === "guest" ? "flex" : "none";
-      if (elements.accountMeta) {
-        elements.accountMeta.textContent = authState.role === "guest"
-          ? "Du bist nicht eingeloggt."
-          : `${name} · Rolle: ${authState.role}`;
+      if (elements.accountAvatar) {
+        if (avatar) {
+          elements.accountAvatar.src = avatar;
+          elements.accountAvatar.style.display = "block";
+        } else {
+          elements.accountAvatar.removeAttribute("src");
+          elements.accountAvatar.style.display = "none";
+        }
+      }
+      if (elements.accountName) elements.accountName.textContent = displayName;
+      if (elements.accountEmail) elements.accountEmail.textContent = email;
+      if (elements.accountRole) elements.accountRole.textContent = authState.role;
+      if (elements.accountAdminBtn) {
+        elements.accountAdminBtn.style.display = authState.role === "admin" ? "inline-flex" : "none";
+      }
+      if (elements.loginError) {
+        elements.loginError.style.display = "none";
+        elements.loginError.textContent = "";
       }
     }
 
+    function showLoginError(message){
+      if (!elements.loginError) return;
+      elements.loginError.textContent = message;
+      elements.loginError.style.display = "inline";
+    }
+
     function openLogin(){
-      if (window.netlifyIdentity) {
-        window.netlifyIdentity.open("login");
+      if (!window.netlifyIdentity) {
+        showLoginError("Google Login ist aktuell nicht verfügbar.");
+        return;
+      }
+      try {
+        window.netlifyIdentity.open("login", { provider: "google" });
+      } catch (err) {
+        showLoginError("Google Login ist aktuell nicht verfügbar.");
       }
     }
     function openAccount(){ elements.panelAccount.classList.add("show"); }
@@ -729,20 +800,13 @@
     function setupIdentity(){
       if (!window.netlifyIdentity) return;
       window.netlifyIdentity.init();
-      window.netlifyIdentity.on("login", async (user) => {
-        console.log("Logged in:", user.email);
-        authState.user = user;
-        authState.role = user.app_metadata?.role || "user";
-        authState.permissions = [];
-        updateAccountUI();
-        await hydrateState();
+      window.netlifyIdentity.on("login", (user) => {
+        console.log("Logged in via Google:", user.email);
+        window.location.reload();
       });
       window.netlifyIdentity.on("logout", () => {
         console.log("Logged out");
-        authState.user = null;
-        authState.role = "guest";
-        authState.permissions = [];
-        updateAccountUI();
+        window.location.reload();
       });
     }
 
@@ -1001,6 +1065,12 @@
       if (window.netlifyIdentity) {
         window.netlifyIdentity.logout();
       }
+    });
+    elements.accountAdminBtn.addEventListener("click", () => {
+      if (authState.role !== "admin") return;
+      closePanel(elements.panelAccount);
+      openPanel(elements.panelAdmin);
+      loadAdminUsers();
     });
 
     document.querySelectorAll("[data-admin-tab]").forEach((btn) => {
