@@ -200,6 +200,24 @@
     .fill{height:100%; width:0%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius:999px; transition: width .35s var(--ease);}
 
     .note{padding:14px; border-radius:18px; background:rgba(0,0,0,.20); border:1px solid var(--line); color:var(--muted); line-height:1.6; font-size:13px;}
+    .note ul{margin:10px 0 0 18px; padding:0; display:grid; gap:6px;}
+    .note li{list-style: disc;}
+    .reward-list li{color:rgba(247,247,251,.72);}
+    .reward-list li.unlocked{color:var(--text);}
+
+    .crossword{margin-top:16px; display:grid; gap:14px;}
+    .crossword-grid{display:grid; grid-template-columns: repeat(5, 42px); gap:6px; justify-content:flex-start;}
+    .crossword-cell{
+      width:42px; height:42px; border-radius:10px; border:1px solid var(--line);
+      background:rgba(255,255,255,.06); display:grid; place-items:center;
+      font-weight:800; text-transform:uppercase;
+    }
+    .crossword-cell input{
+      width:100%; height:100%; border:0; outline:none; background:transparent; color:var(--text);
+      text-align:center; font-size:16px; text-transform:uppercase;
+    }
+    .crossword-cell.block{background:rgba(255,255,255,.02); border:1px dashed rgba(255,255,255,.08);}
+    .crossword-clues{display:grid; gap:8px; color:var(--muted); font-size:13px;}
 
     .miniRow{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;}
     .miniBtn{border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.06); color:rgba(247,247,251,.9); padding:10px 12px; min-height:44px; border-radius:14px; cursor:pointer; font-weight:800; user-select:none;}
@@ -243,6 +261,11 @@
     .actions{display:flex; gap:10px; flex-wrap:wrap; margin-top:16px;}
     .big{flex:1 1 160px; justify-content:center; padding:14px 16px; border-radius:18px; font-size:15px;}
 
+    .activity{margin-top:14px; padding:14px; border-radius:18px; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.06);}
+    .activity-choices{display:grid; gap:10px; margin-top:10px;}
+    .activity-choice{display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border-radius:14px; border:1px solid rgba(255,255,255,.14); background:rgba(0,0,0,.12);}
+    .activity-choice input{margin-top:3px;}
+
     canvas{position:fixed; inset:0; pointer-events:none; z-index:60;}
 
     .sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;}
@@ -277,7 +300,7 @@
           <div class="logo" aria-hidden="true"></div>
           <div class="title">
             <h1>Fia, eine kleine Reise 💘</h1>
-            <p>Von Collin — 5 Schritte, 1 Frage am Ende.</p>
+            <p>Von Collin — 6 Schritte, 1 Frage am Ende.</p>
           </div>
         </div>
         <div class="chip" aria-live="polite"><span class="dot" aria-hidden="true"></span><span id="statusText">Bereit</span></div>
@@ -297,9 +320,10 @@
                 <div class="pill"><b>0</b> Start</div>
                 <div class="pill"><b>1</b> Ort 📍</div>
                 <div class="pill"><b>2</b> Song 🎶</div>
-                <div class="pill"><b>3</b> Gefühl 🫶</div>
-                <div class="pill"><b>4</b> Zuhause 🏠</div>
-                <div class="pill"><b>5</b> Zukunft ✨</div>
+                <div class="pill"><b>3</b> Rätsel 💘</div>
+                <div class="pill"><b>4</b> Gefühl 🫶</div>
+                <div class="pill"><b>5</b> Zuhause 🏠</div>
+                <div class="pill"><b>6</b> Zukunft ✨</div>
               </div>
             </div>
           </div>
@@ -310,6 +334,11 @@
               <p id="stepText"></p>
 
               <div class="hint" id="hint"></div>
+
+              <div class="crossword" id="crossword" style="display:none" aria-live="polite">
+                <div class="crossword-grid" id="crosswordGrid" aria-label="Kreuzworträtsel"></div>
+                <div class="crossword-clues" id="crosswordClues"></div>
+              </div>
 
               <form id="answerForm" autocomplete="off">
                 <div class="input" id="inputWrap">
@@ -331,7 +360,7 @@
             <div class="stat">
               <div>
                 <div class="k">Fortschritt</div>
-                <div class="v"><span id="progressLabel">0</span>/5 gelöst</div>
+                <div class="v"><span id="progressLabel">0</span>/6 gelöst</div>
               </div>
               <div style="text-align:right">
                 <div class="k">Bonus</div>
@@ -373,6 +402,18 @@
 
             <div class="note" id="revealNote" style="display:none"></div>
 
+            <div class="note" id="rewards">
+              <b>Belohnungen (werden freigeschaltet):</b>
+              <ul class="reward-list" aria-live="polite">
+                <li data-reward="photo">🔒 1x Foto-Date</li>
+                <li data-reward="challenge">🔒 Kleine Challenge: 10 Fotos, die eure Beziehung symbolisieren</li>
+                <li data-reward="letter">🔒 1x Brief an das „Wir in 5 Jahren“</li>
+                <li data-reward="seal">🔒 Briefe schreiben & versiegeln</li>
+                <li data-reward="art">🔒 1x Gemeinsames Malen gießen</li>
+                <li data-reward="care">🔒 Jede*r macht etwas für die andere Person</li>
+              </ul>
+            </div>
+
             <div class="note">
               <b>Von Collin:</b><br/>
               Falls du beim Lösen lächelst… dann hat’s funktioniert.
@@ -390,6 +431,10 @@
       <div class="modal-inner">
         <h3 id="finalTitle">Fia… 🥺💘</h3>
         <p id="finalText"></p>
+        <div class="activity" id="activityWrap" style="display:none">
+          <p><b>Wähle unsere Valentinstag-Aktivität:</b></p>
+          <div class="activity-choices" id="activityChoices"></div>
+        </div>
         <div class="actions" id="finalActions"></div>
         <p id="finalHint" style="margin-top:14px; font-size:12px; color:rgba(247,247,251,.65)"></p>
       </div>
@@ -404,6 +449,22 @@
 
     const FIRST_KISS_PLACE = "Brücke";
     const OUR_SONG = "Walzer";
+    const STEP_TOTAL = 6;
+
+    const CROSSWORD = {
+      size: 5,
+      blocks: [
+        [1,0],[1,1],[1,3],
+        [3,0],[3,1],[3,3],
+        [4,0],[4,1],[4,2],[4,3],[4,4]
+      ],
+      words: [
+        { row: 0, col: 0, dir: "across", answer: "LIEBE", clue: "Was zwei Herzen verbindet." },
+        { row: 0, col: 2, dir: "down", answer: "EHRE", clue: "Ein stilles Versprechen voller Achtung." },
+        { row: 2, col: 0, dir: "across", answer: "HERZ", clue: "Der Rhythmus zwischen uns." },
+        { row: 0, col: 4, dir: "down", answer: "ECHO", clue: "Wenn Gefühle nachklingen." }
+      ]
+    };
 
     const STEPS = [
       {
@@ -441,8 +502,17 @@ Wie heißt unser Song?`,
         success: "Natürlich 😭💖\nJedes Mal, wenn ich den höre, denke ich an dich."
       },
       {
+        type: "crossword",
+        title: "Schritt 3: Kreuzworträtsel",
+        text:
+`Ein kleines Kreuzworträtsel über Liebe.
+
+Nimm dir einen Moment und fülle die Felder.`,
+        hint: "Tipp: Es geht um Gefühle, Nähe und das, was bleibt."
+      },
+      {
         type: "free",
-        title: "Schritt 3: Gefühl",
+        title: "Schritt 4: Gefühl",
         text:
 `Wenn unser Song läuft…
 
@@ -452,7 +522,7 @@ was fühlst du dann als Erstes?`,
       },
       {
         type: "free",
-        title: "Schritt 4: Zuhause",
+        title: "Schritt 5: Zuhause",
         text:
 `Vervollständige den Satz ehrlich:
 
@@ -462,7 +532,7 @@ was fühlst du dann als Erstes?`,
       },
       {
         type: "free",
-        title: "Schritt 5: Zukunft",
+        title: "Schritt 6: Zukunft",
         text:
 `Letzter Schritt.
 
@@ -478,6 +548,9 @@ Beende diesen Satz:
     const stepTitle = document.getElementById("stepTitle");
     const stepText  = document.getElementById("stepText");
     const hintEl    = document.getElementById("hint");
+    const crossword = document.getElementById("crossword");
+    const crosswordGrid = document.getElementById("crosswordGrid");
+    const crosswordClues = document.getElementById("crosswordClues");
     const form      = document.getElementById("answerForm");
     const inputWrap = document.getElementById("inputWrap");
     const input     = document.getElementById("answerInput");
@@ -499,6 +572,7 @@ Beende diesen Satz:
     const countdownUnit = document.getElementById("countdownUnit");
     const countdown = document.getElementById("countdown");
     const revealNote = document.getElementById("revealNote");
+    const rewardsList = document.querySelector(".reward-list");
 
     const overlay   = document.getElementById("overlay");
     const modal     = document.getElementById("modal");
@@ -506,6 +580,8 @@ Beende diesen Satz:
     const finalText = document.getElementById("finalText");
     const finalActions = document.getElementById("finalActions");
     const finalHint = document.getElementById("finalHint");
+    const activityWrap = document.getElementById("activityWrap");
+    const activityChoices = document.getElementById("activityChoices");
 
     document.getElementById("helloTitle").textContent = `Hallo ${HER_NAME} 🌙`;
 
@@ -514,16 +590,45 @@ Beende diesen Satz:
       solved: 0,
       lastFocus: null,
       playerProgress: 0,
-      playerTimer: null
+      playerTimer: null,
+      activityUnlocked: false,
+      activityChoice: null,
+      audioReady: false,
+      audioCtx: null
     };
 
     const REVEALS = [
       "",
       `Freigeschaltet: ${FIRST_KISS_PLACE} — unser Ort.`,
       `Freigeschaltet: ${OUR_SONG} — Provinz.`,
+      "Freigeschaltet: Das kleine Rätsel gehört jetzt dir.",
       "Freigeschaltet: Deine Worte fühlen sich an wie eine Umarmung.",
       "Freigeschaltet: Zuhause ist kein Ort — es ist dieses Gefühl mit dir.",
       "Freigeschaltet: Zukunft klingt plötzlich leicht und wunderschön."
+    ];
+
+    const REWARD_ORDER = [
+      "photo",
+      "challenge",
+      "letter",
+      "seal",
+      "art",
+      "care"
+    ];
+
+    const ACTIVITY_CHOICES = [
+      {
+        id: "disney",
+        label: "Filmmarathon mit Motto: Wir schauen jeden Disney-Film den du liebst, mit Abendmassage und einem Döner, den wir zusammen holen. 🍿"
+      },
+      {
+        id: "games",
+        label: "Spieleabend & gemeinsames Spazierengehen beim Sonnenuntergang, mit meinem Massage-Programm ❤️"
+      },
+      {
+        id: "surprise",
+        label: "Oder wir machen etwas ganz anderes, das wir zusammen spontan aussuchen ✨"
+      }
     ];
 
     const normalize = (value) => (value || "")
@@ -599,8 +704,105 @@ Beende diesen Satz:
 
     function setProgress(){
       progressLabel.textContent = String(state.solved);
-      fill.style.width = (state.solved/5*100) + "%";
+      fill.style.width = (state.solved/STEP_TOTAL*100) + "%";
       bonusLabel.textContent = state.solved === 0 ? "💗" : state.solved === 1 ? "💗💗" : state.solved === 2 ? "💗💗💗" : state.solved === 3 ? "💗💗💗💗" : state.solved === 4 ? "💘" : "💞";
+      updateRewards();
+    }
+
+    function updateRewards(){
+      if (!rewardsList) return;
+      const unlocked = Math.min(state.solved, REWARD_ORDER.length);
+      REWARD_ORDER.forEach((reward, index) => {
+        const item = rewardsList.querySelector(`[data-reward="${reward}"]`);
+        if (!item) return;
+        if (index < unlocked){
+          item.classList.add("unlocked");
+          item.textContent = item.textContent.replace("🔒", "✅");
+        }
+      });
+    }
+
+    function ensureAudio(){
+      if (state.audioReady) return;
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      state.audioCtx = ctx;
+      state.audioReady = true;
+    }
+
+    function playChime(type){
+      if (!state.audioReady || !state.audioCtx) return;
+      const ctx = state.audioCtx;
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = type === "final" ? 660 : 520;
+      gain.gain.value = 0.0001;
+      gain.gain.exponentialRampToValueAtTime(0.08, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.55);
+    }
+
+    function renderCrossword(){
+      crosswordGrid.innerHTML = "";
+      crosswordClues.innerHTML = "";
+      const size = CROSSWORD.size;
+      const blockSet = new Set(CROSSWORD.blocks.map(([r,c]) => `${r}-${c}`));
+
+      for (let r = 0; r < size; r++){
+        for (let c = 0; c < size; c++){
+          const cell = document.createElement("div");
+          cell.className = "crossword-cell";
+          if (blockSet.has(`${r}-${c}`)){
+            cell.classList.add("block");
+          } else {
+            const input = document.createElement("input");
+            input.maxLength = 1;
+            input.setAttribute("aria-label", `Feld ${r + 1}, ${c + 1}`);
+            input.addEventListener("input", (e) => {
+              const value = e.target.value.replace(/[^a-zA-Z]/g, "").toUpperCase();
+              e.target.value = value;
+            });
+            cell.appendChild(input);
+          }
+          crosswordGrid.appendChild(cell);
+        }
+      }
+
+      const clueTitle = document.createElement("div");
+      clueTitle.innerHTML = "<b>Hinweise:</b>";
+      crosswordClues.appendChild(clueTitle);
+      CROSSWORD.words.forEach((word, idx) => {
+        const clue = document.createElement("div");
+        const dir = word.dir === "across" ? "→" : "↓";
+        clue.textContent = `${idx + 1}${dir} ${word.clue}`;
+        crosswordClues.appendChild(clue);
+      });
+    }
+
+    function validateCrossword(){
+      const size = CROSSWORD.size;
+      const cells = crosswordGrid.querySelectorAll(".crossword-cell");
+      if (!cells.length) return false;
+      const getChar = (r,c) => {
+        const index = r * size + c;
+        const cell = cells[index];
+        const input = cell ? cell.querySelector("input") : null;
+        return input ? input.value.trim().toUpperCase() : "";
+      };
+      return CROSSWORD.words.every((word) => {
+        for (let i = 0; i < word.answer.length; i++){
+          const r = word.row + (word.dir === "down" ? i : 0);
+          const c = word.col + (word.dir === "across" ? i : 0);
+          const expected = word.answer[i];
+          const actual = getChar(r,c);
+          if (!actual) return false;
+          if (actual !== expected) return false;
+        }
+        return true;
+      });
     }
 
     function setStatus(text){
@@ -618,6 +820,9 @@ Beende diesen Satz:
     function focusPrimary(){
       if (STEPS[state.idx].type === "intro"){
         submitBtn.focus();
+      } else if (STEPS[state.idx].type === "crossword") {
+        const firstInput = crosswordGrid.querySelector("input");
+        if (firstInput) firstInput.focus();
       } else {
         input.focus();
       }
@@ -637,12 +842,22 @@ Beende diesen Satz:
 
       if (step.type === "intro"){
         inputWrap.style.display = "none";
+        crossword.style.display = "none";
         submitBtn.textContent = "Start ➜";
         helpBtn.style.display = "inline-flex";
         setStatus("Start");
         nowPlaying.style.display = "none";
+      } else if (step.type === "crossword") {
+        inputWrap.style.display = "none";
+        crossword.style.display = "grid";
+        submitBtn.textContent = "Prüfen ➜";
+        helpBtn.style.display = "inline-flex";
+        setStatus("Im Rätsel-Modus");
+        nowPlaying.style.display = "none";
+        renderCrossword();
       } else {
         inputWrap.style.display = "flex";
+        crossword.style.display = "none";
         submitBtn.textContent = "Weiter ➜";
         helpBtn.style.display = "inline-flex";
         setStatus("Im Rätsel-Modus");
@@ -653,6 +868,9 @@ Beende diesen Satz:
     }
 
     function validateAnswer(answer){
+      if (STEPS[state.idx].type === "crossword"){
+        return validateCrossword();
+      }
       return isAccepted(answer, STEPS[state.idx].accept || []);
     }
 
@@ -667,6 +885,9 @@ Beende diesen Satz:
         const trimmed = answer.trim();
         return `Danke fürs Teilen, ${HER_NAME}. „${trimmed}“ fühlt sich wunderschön an. 🫶`;
       }
+      if (step.type === "crossword"){
+        return "Wunderschön gelöst. Liebe hat viele Wege — ihr seid einer davon. 💘";
+      }
       if (step.title.includes("Ort")){
         return `Ja… genau dort: ${FIRST_KISS_PLACE} 🥹💗\nManche Orte verändern alles.`;
       }
@@ -679,12 +900,16 @@ Beende diesen Satz:
     function handleSuccess(answer){
       const step = STEPS[state.idx];
       setToast("ok", getSuccessMessage(step, answer));
+      playChime("success");
       state.solved += 1;
       setProgress();
       setStatus("Richtig ✅");
       if (REVEALS[state.idx]){
         revealNote.style.display = "block";
         revealNote.textContent = REVEALS[state.idx];
+      }
+      if (step.type === "crossword"){
+        state.activityUnlocked = true;
       }
       if (step.title.includes("Song")){
         playerTitle.textContent = `${OUR_SONG} — Provinz`;
@@ -728,6 +953,38 @@ Beende diesen Satz:
       }
     }
 
+    function renderActivityChoices(){
+      activityChoices.innerHTML = "";
+      ACTIVITY_CHOICES.forEach((choice, index) => {
+        const label = document.createElement("label");
+        label.className = "activity-choice";
+        const input = document.createElement("input");
+        input.type = "radio";
+        input.name = "activityChoice";
+        input.value = choice.id;
+        input.checked = state.activityChoice ? state.activityChoice === choice.id : index === 0;
+        if (!state.activityChoice && index === 0){
+          state.activityChoice = choice.id;
+        }
+        input.addEventListener("change", () => {
+          state.activityChoice = choice.id;
+        });
+        const text = document.createElement("span");
+        text.textContent = choice.label;
+        label.appendChild(input);
+        label.appendChild(text);
+        activityChoices.appendChild(label);
+      });
+    }
+
+    function getUnlockedRewards(){
+      const unlocked = Math.min(state.solved, REWARD_ORDER.length);
+      return REWARD_ORDER.slice(0, unlocked).map((reward) => {
+        const item = rewardsList.querySelector(`[data-reward="${reward}"]`);
+        return item ? item.textContent.replace("✅ ", "") : "";
+      }).filter(Boolean);
+    }
+
     function openFinalStage1(){
       openOverlay();
       countdown.style.display = "flex";
@@ -736,6 +993,13 @@ Beende diesen Satz:
         `Ich hab das alles gebaut,\n`+
         `weil du für mich nicht einfach nur meine Freundin bist…\n\n`+
         `<b>sondern mein Lieblingsmensch.</b>`;
+
+      if (state.activityUnlocked){
+        activityWrap.style.display = "block";
+        renderActivityChoices();
+      } else {
+        activityWrap.style.display = "none";
+      }
 
       finalActions.innerHTML = "";
       const btn = document.createElement("button");
@@ -765,13 +1029,22 @@ Beende diesen Satz:
       no.textContent = "Nein 🙈";
 
       yes.addEventListener("click", () => {
+        ensureAudio();
+        playChime("final");
         burstConfetti();
+        const rewards = getUnlockedRewards();
+        const rewardList = rewards.length ? `<ul style="margin:10px 0 0 18px;">${rewards.map(r => `<li>${r}</li>`).join("")}</ul>` : "";
+        const activity = ACTIVITY_CHOICES.find((choice) => choice.id === state.activityChoice);
         finalTitle.textContent = `${HER_NAME}… 😭💖`;
         finalText.innerHTML =
           `<b>Dann ist es offiziell:</b><br/>`+
           `Du bist mein Valentinstag.<br/>`+
           `Und mein Zuhause.<br/><br/>`+
-          `<span style="opacity:.92">— ${YOUR_NAME}</span>`;
+          `<b>Unsere Planung:</b><br/>`+
+          `${activity ? activity.label : "Wir entscheiden spontan zusammen."}`+
+          `${rewardList}`+
+          `<div style="margin-top:10px; opacity:.9;">Valentinstag: 14.02.</div>`+
+          `<span style="opacity:.92"><br/>— ${YOUR_NAME}</span>`;
         finalActions.innerHTML = "";
         const ok = document.createElement("button");
         ok.className = "btn big";
@@ -914,6 +1187,7 @@ Beende diesen Satz:
     }
 
     helpBtn.addEventListener("click", () => {
+      ensureAudio();
       if (hintEl.textContent.trim().length){
         hintEl.style.display = "block";
       }
@@ -922,6 +1196,7 @@ Beende diesen Satz:
 
     form.addEventListener("submit", (e) => {
       e.preventDefault();
+      ensureAudio();
       const step = STEPS[state.idx];
 
       if (step.type === "intro"){
@@ -950,7 +1225,10 @@ Beende diesen Satz:
       }
     });
 
-    playerBtn.addEventListener("click", togglePlayer);
+    playerBtn.addEventListener("click", () => {
+      ensureAudio();
+      togglePlayer();
+    });
 
     setCountdown();
     window.setInterval(setCountdown, 60000);
