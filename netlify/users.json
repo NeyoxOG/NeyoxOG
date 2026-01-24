@@ -1,0 +1,14 @@
+{
+  "users": [
+    {
+      "email": "collin@example.com",
+      "role": "admin",
+      "disabled": false
+    },
+    {
+      "email": "fia@example.com",
+      "role": "user",
+      "disabled": false
+    }
+  ]
+}
