@@ -395,6 +395,7 @@
                   <span id="crosswordDirection">Richtung: → Quer</span>
                   <span id="crosswordClueActive">Hinweis: —</span>
                   <button class="btn secondary" type="button" id="crosswordClearBtn">Felder leeren</button>
+                  <button class="btn secondary" type="button" id="crosswordSolveBtn" style="display:none">Auto-Lösen</button>
                 </div>
                 <div class="crossword-grid" id="crosswordGrid" aria-label="Kreuzworträtsel"></div>
                 <div class="wordconnect-words" id="crosswordHints" style="display:none"></div>
@@ -525,18 +526,20 @@
       required: 3
     };
 
+    const CROSSWORD_DEBUG = false;
+
     const CROSSWORD = {
       size: 5,
       blocks: [
         [1,0],[1,1],[1,3],
-        [3,0],[3,1],[3,3],
+        [2,0],[2,1],[2,3],
         [4,0],[4,1],[4,2],[4,3],[4,4]
       ],
       words: [
-        { row: 0, col: 0, dir: "across", answer: "ROSE", clue: "Eine Blume, die oft für Liebe steht." },
-        { row: 0, col: 2, dir: "down", answer: "EHE", clue: "Drei Buchstaben für ein großes Versprechen." },
-        { row: 2, col: 0, dir: "across", answer: "HERZ", clue: "Es schlägt für uns." },
-        { row: 0, col: 4, dir: "down", answer: "KUSS", clue: "Ein Moment, der bleibt." }
+        { row: 0, col: 0, dir: "across", answer: "KLEE", clue: "Eine kleine Blume mit 4 Buchstaben." },
+        { row: 0, col: 2, dir: "down", answer: "EHE", clue: "Ein kurzes Wort für ein großes Versprechen." },
+        { row: 3, col: 0, dir: "across", answer: "PULS", clue: "Etwas, das in uns schlägt." },
+        { row: 0, col: 4, dir: "down", answer: "KUSS", clue: "Ein Kuss sagt manchmal alles." }
       ]
     };
 
@@ -645,6 +648,7 @@ Beende diesen Satz:
     const crosswordDirection = document.getElementById("crosswordDirection");
     const crosswordClueActive = document.getElementById("crosswordClueActive");
     const crosswordClearBtn = document.getElementById("crosswordClearBtn");
+    const crosswordSolveBtn = document.getElementById("crosswordSolveBtn");
     const crosswordHints = document.getElementById("crosswordHints");
     const crosswordHintBtn = document.getElementById("crosswordHintBtn");
     const form      = document.getElementById("answerForm");
@@ -736,8 +740,8 @@ Beende diesen Satz:
       "Tipp 2: In der Mitte quer: etwas, das in uns schlägt (4 Buchstaben).",
       "Tipp 3: Rechts runter ist ein Kuss (4 Buchstaben).",
       "Tipp 4: Runter bei Spalte 3 steht ein kurzes Versprechen (3 Buchstaben).",
-      "Tipp 5: Das obere Wort beginnt mit R.",
-      "Tipp 6: Der letzte Buchstabe im rechten Wort ist S."
+      "Tipp 5: Das obere Wort beginnt mit K.",
+      "Tipp 6: Das Wort in der Mitte endet mit S."
     ];
 
     const ACTIVITY_CHOICES = [
@@ -1163,7 +1167,7 @@ Beende diesen Satz:
           ArrowLeft: [0,-1],
           ArrowRight: [0,1]
         }[event.key];
-        focusCrosswordCell(row + delta[0], col + delta[1]);
+        focusNextCrosswordCell(row, col, delta[0], delta[1]);
       }
     }
 
@@ -1172,6 +1176,7 @@ Beende diesen Satz:
       const text = (event.clipboardData.getData("text") || "").toUpperCase().replace(/[^A-Z]/g, "");
       if (!text) return;
       const cells = getWordCellsForDirection(row, col, state.crosswordDirection);
+      if (!cells.length) return;
       text.split("").forEach((char, index) => {
         const target = cells[index];
         if (!target) return;
@@ -1183,7 +1188,9 @@ Beende diesen Satz:
 
     function setActiveCrosswordCell(row, col, toggle){
       const cell = state.crosswordActive;
-      if (cell && cell.row === row && cell.col === col && toggle){
+      const hasAcross = Boolean(findWordForCell(row, col, "across"));
+      const hasDown = Boolean(findWordForCell(row, col, "down"));
+      if (cell && cell.row === row && cell.col === col && toggle && hasAcross && hasDown){
         state.crosswordDirection = state.crosswordDirection === "across" ? "down" : "across";
         playChime("tap");
       }
@@ -1259,6 +1266,21 @@ Beende diesen Satz:
       if (input) input.focus();
     }
 
+    function focusNextCrosswordCell(row, col, dr, dc){
+      let r = row + dr;
+      let c = col + dc;
+      while (r >= 0 && r < CROSSWORD.size && c >= 0 && c < CROSSWORD.size){
+        const cell = crosswordGrid.children[r * CROSSWORD.size + c];
+        const input = cell ? cell.querySelector("input") : null;
+        if (input){
+          input.focus();
+          return;
+        }
+        r += dr;
+        c += dc;
+      }
+    }
+
     function checkCrosswordWordComplete(row, col){
       const word = findWordForCell(row, col, state.crosswordDirection);
       if (!word) return;
@@ -1274,11 +1296,24 @@ Beende diesen Satz:
     }
 
     function clearCrossword(){
-      if (!confirm("Felder wirklich leeren?")) return;
       crosswordGrid.querySelectorAll("input").forEach((input) => {
         input.value = "";
       });
       setToast("bad", "Felder geleert.");
+    }
+
+    function autoSolveCrossword(){
+      if (!CROSSWORD_DEBUG) return;
+      CROSSWORD.words.forEach((word) => {
+        for (let i = 0; i < word.answer.length; i++){
+          const r = word.row + (word.dir === "down" ? i : 0);
+          const c = word.col + (word.dir === "across" ? i : 0);
+          const cell = crosswordGrid.children[r * CROSSWORD.size + c];
+          const input = cell ? cell.querySelector("input") : null;
+          if (input) input.value = word.answer[i];
+        }
+      });
+      setToast("ok", "Auto-Lösen aktiv (Debug).");
     }
 
     function setStatus(text){
@@ -1364,6 +1399,7 @@ Beende diesen Satz:
         crosswordHints.style.display = "none";
         crosswordHints.innerHTML = "";
         crosswordHintBtn.style.display = "inline-flex";
+        crosswordSolveBtn.style.display = CROSSWORD_DEBUG ? "inline-flex" : "none";
         renderCrossword();
       } else {
         inputWrap.style.display = "flex";
@@ -1764,6 +1800,12 @@ Beende diesen Satz:
       ensureAudio();
       playChime("click");
       clearCrossword();
+    });
+
+    crosswordSolveBtn.addEventListener("click", () => {
+      ensureAudio();
+      playChime("tap");
+      autoSolveCrossword();
     });
 
     wordconnectHintBtn.addEventListener("click", () => {
