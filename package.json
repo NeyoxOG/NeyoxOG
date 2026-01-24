@@ -1,0 +1,9 @@
+{
+  "name": "fia-os",
+  "private": true,
+  "version": "1.0.0",
+  "type": "commonjs",
+  "dependencies": {
+    "@netlify/blobs": "^6.1.1"
+  }
+}
