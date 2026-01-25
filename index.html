@@ -58,6 +58,10 @@
 
     .os-wrap{height:100%; display:flex; flex-direction:column; padding:14px 14px 92px; gap:12px;}
 
+    .statusbar{display:grid; gap:8px; padding:10px 14px; border-radius:18px; background:rgba(255,255,255,.06); border:1px solid var(--line); backdrop-filter: blur(12px); box-shadow: var(--shadow);} 
+    .topbar-row1{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+    .topbar-row2{display:flex; align-items:center; justify-content:flex-end;}
+    .auth-chip{max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
     .statusbar{display:flex; align-items:center; justify-content:space-between; padding:10px 14px; border-radius:18px; background:rgba(255,255,255,.06); border:1px solid var(--line); backdrop-filter: blur(12px); box-shadow: var(--shadow);} 
     .status-left{display:flex; align-items:center; gap:10px; font-size:12px; color:var(--muted);} 
     .status-title{font-weight:700; color:var(--text);} 
@@ -87,6 +91,7 @@
     .app-icon button:active{transform:translateY(2px) scale(.97);} 
     .app-icon button.glow{box-shadow:0 0 22px rgba(255,77,109,.45);} 
 
+    .dock{position:fixed; left:0; right:0; bottom:0; padding:12px 14px; padding-bottom:calc(12px + env(safe-area-inset-bottom)); display:flex; justify-content:center; pointer-events:none;} 
     .dock{position:fixed; left:0; right:0; bottom:0; padding:12px 14px; display:flex; justify-content:center; pointer-events:none;} 
     .dock-inner{pointer-events:auto; display:flex; gap:12px; padding:10px 12px; border-radius:22px; border:1px solid var(--line); background:rgba(255,255,255,.08); backdrop-filter: blur(14px); box-shadow: var(--shadow);} 
     .dock-btn{width:46px; height:46px; border-radius:16px; border:1px solid rgba(255,255,255,.18); background:rgba(0,0,0,.2); display:grid; place-items:center; color:var(--text); font-size:18px; cursor:pointer; position:relative; transition: transform .14s var(--ease);} 
@@ -150,6 +155,16 @@
     .g-yellow{color:#fbbc05;}
     .g-green{color:#34a853;}
     .status-toast{margin-left:8px; font-size:12px; color:var(--muted);}
+    .account-menu{position:absolute; top:72px; right:16px; min-width:200px; display:none; flex-direction:column; gap:8px; padding:12px; border-radius:16px; border:1px solid var(--line); background:rgba(255,255,255,.12); backdrop-filter: blur(16px); box-shadow: var(--shadow); z-index:30;}
+    .account-menu.show{display:flex;}
+    .account-menu button{width:100%; justify-content:flex-start;}
+
+    @media (max-width:480px){
+      .statusbar{gap:10px;}
+      .topbar-row1{align-items:center;}
+      .topbar-row2{justify-content:flex-end;}
+      .dock-btn{width:52px; height:52px;}
+    }
 
     @media (prefers-reduced-motion: reduce){
       .heart{animation:none}
@@ -170,6 +185,18 @@
 
   <div class="os-wrap">
     <div class="statusbar">
+      <div class="topbar-row1">
+        <div class="status-left">
+          <span class="status-title">Fia OS</span>
+        </div>
+        <div class="status-right">
+          <span id="clock">00:00</span>
+          <span>🔋</span>
+        </div>
+      </div>
+      <div class="topbar-row2">
+        <button class="pill auth-chip" id="accountBtn" aria-label="Mit Google anmelden">Google Login</button>
+        <span class="status-toast" id="loginError" style="display:none;"></span>
       <div class="status-left">
         <span class="status-title">Fia OS</span>
         <span>·</span>
@@ -213,6 +240,7 @@
     <div class="dock-inner">
       <button class="dock-btn active" data-panel="home" aria-label="Home">🏠</button>
       <button class="dock-btn" data-panel="projects" aria-label="Projects">🧭</button>
+      <button class="dock-btn" data-panel="rewards" aria-label="Rewards">🎁<span class="badge" id="rewardBadge"></span></button>
       <button class="dock-btn" data-panel="rewards" aria-label="Rewards">🎁<span class="badge" id="rewardBadge">+1</span></button>
       <button class="dock-btn" data-panel="message" aria-label="Message">💬</button>
       <button class="dock-btn" data-panel="settings" aria-label="Settings">⚙️</button>
@@ -332,6 +360,7 @@
     <div id="guestOverlay" style="display:none; position:absolute; inset:0; background:rgba(0,0,0,.55); backdrop-filter: blur(6px); color:var(--text); padding:24px; align-items:center; justify-content:center; text-align:center;">
       <div style="max-width:320px;">
         <h3>Preview‑Modus</h3>
+        <p>Bitte anmelden, um zu speichern.</p>
         <p>Als Gast kannst du nur schauen. Bitte anmelden, um zu speichern.</p>
       </div>
     </div>
@@ -352,6 +381,17 @@
     </div>
   </div>
 
+  <div class="account-menu" id="accountMenu" role="menu" aria-label="Account Menü">
+    <div class="card" style="display:flex; gap:12px; align-items:center; padding:10px;">
+      <img id="accountAvatar" class="account-avatar" alt="Avatar" />
+      <div>
+        <div id="accountName" style="font-weight:600;">—</div>
+        <div class="meta" id="accountEmail">—</div>
+      </div>
+    </div>
+    <button class="btn secondary" id="accountProfileBtn" aria-label="Profil anzeigen">Profil</button>
+    <button class="btn secondary" id="accountAdminBtn" style="display:none;">Admin-Menü</button>
+    <button class="btn secondary" id="logoutBtn">Logout</button>
   <div class="panel" id="panelAccount" aria-modal="true" role="dialog">
     <div class="panel-card">
       <h3>Account</h3>
@@ -437,16 +477,19 @@
 
     const authState = {
       user: null,
+      role: null,
       role: "guest",
       permissions: []
     };
 
     const loadJSON = (key, fallback) => {
+      if (!authState.user) return fallback;
       if (authState.role === "guest") return fallback;
       try{ return JSON.parse(localStorage.getItem(key)) ?? fallback; }
       catch{ return fallback; }
     };
     const saveJSON = (key, value) => {
+      if (!authState.user) return;
       if (authState.role === "guest") return;
       localStorage.setItem(key, JSON.stringify(value));
       if (authState.user) {
@@ -506,6 +549,12 @@
       openRewards: document.getElementById("openRewards"),
       accountBtn: document.getElementById("accountBtn"),
       loginError: document.getElementById("loginError"),
+      accountMenu: document.getElementById("accountMenu"),
+      accountAvatar: document.getElementById("accountAvatar"),
+      accountName: document.getElementById("accountName"),
+      accountEmail: document.getElementById("accountEmail"),
+      accountAdminBtn: document.getElementById("accountAdminBtn"),
+      accountProfileBtn: document.getElementById("accountProfileBtn"),
       panelAccount: document.getElementById("panelAccount"),
       accountAvatar: document.getElementById("accountAvatar"),
       accountName: document.getElementById("accountName"),
@@ -644,7 +693,7 @@
         elements.appTitle.textContent = project.name;
         elements.appFrame.src = project.url;
         elements.appWindow.classList.add("show");
-        elements.guestOverlay.style.display = authState.role === "guest" ? "flex" : "none";
+        elements.guestOverlay.style.display = authState.user ? "none" : "flex";
       } else {
         window.location.href = project.url;
       }
@@ -684,6 +733,7 @@
     }
 
     function showRewardBadge(){
+      elements.rewardBadge.textContent = "+1";
       elements.rewardBadge.classList.add("show");
       window.setTimeout(() => elements.rewardBadge.classList.remove("show"), 1600);
     }
@@ -698,6 +748,7 @@
     async function loadSession(){
       if (!window.netlifyIdentity) {
         authState.user = null;
+        authState.role = null;
         authState.role = "guest";
         authState.permissions = [];
         updateAccountUI();
@@ -706,6 +757,7 @@
       const user = window.netlifyIdentity.currentUser();
       if (!user) {
         authState.user = null;
+        authState.role = null;
         authState.role = "guest";
         authState.permissions = [];
         updateAccountUI();
@@ -721,6 +773,12 @@
       const displayName = authState.user?.user_metadata?.full_name
         || authState.user?.user_metadata?.name
         || authState.user?.email
+        || "Profil";
+      const email = authState.user?.email || "";
+      const avatar = authState.user?.user_metadata?.avatar_url
+        || authState.user?.user_metadata?.picture
+        || "";
+      if (!authState.user) {
         || "Gast";
       const email = authState.user?.email || "—";
       const avatar = authState.user?.user_metadata?.avatar_url
@@ -731,11 +789,18 @@
           <span class="google-mark" aria-hidden="true">
             <span class="g-blue">G</span><span class="g-red">o</span><span class="g-yellow">o</span><span class="g-blue">g</span><span class="g-green">l</span><span class="g-red">e</span>
           </span>
+          <span>Google Login</span>
           <span>👤 Mit Google anmelden</span>
         `;
         elements.accountBtn.setAttribute("aria-label", "Mit Google anmelden");
       } else {
         const avatarImg = avatar ? `<img class="account-avatar" src="${avatar}" alt="" />` : "👤";
+        const roleLabel = authState.role === "admin" ? "Admin" : "";
+        elements.accountBtn.innerHTML = `${avatarImg}<span>${displayName}${roleLabel ? ` · ${roleLabel}` : ""} ▼</span>`;
+        elements.accountBtn.setAttribute("aria-label", "Account öffnen");
+      }
+      elements.adminDock.style.display = authState.role === "admin" ? "grid" : "none";
+      elements.guestOverlay.style.display = authState.user ? "none" : "flex";
         const roleLabel = authState.role === "admin" ? "Admin" : "User";
         elements.accountBtn.innerHTML = `${avatarImg}<span>${displayName} · ${roleLabel}</span>`;
         elements.accountBtn.setAttribute("aria-label", "Account öffnen");
@@ -752,6 +817,7 @@
         }
       }
       if (elements.accountName) elements.accountName.textContent = displayName;
+      if (elements.accountEmail) elements.accountEmail.textContent = email || "—";
       if (elements.accountEmail) elements.accountEmail.textContent = email;
       if (elements.accountRole) elements.accountRole.textContent = authState.role;
       if (elements.accountAdminBtn) {
@@ -760,6 +826,9 @@
       if (elements.loginError) {
         elements.loginError.style.display = "none";
         elements.loginError.textContent = "";
+      }
+      if (!authState.user && elements.accountMenu) {
+        elements.accountMenu.classList.remove("show");
       }
     }
 
@@ -780,6 +849,9 @@
         showLoginError("Google Login ist aktuell nicht verfügbar.");
       }
     }
+    function openAccount(){
+      elements.accountMenu.classList.toggle("show");
+    }
     function openAccount(){ elements.panelAccount.classList.add("show"); }
 
     async function hydrateState(){
@@ -795,6 +867,19 @@
         if (namespace === STORAGE_KEYS.state) state = payload.data;
         if (namespace === STORAGE_KEYS.rewards) rewardsState = payload.data;
         localStorage.setItem(namespace, JSON.stringify(payload.data));
+      });
+    }
+
+    function setupIdentity(){
+      if (!window.netlifyIdentity) return;
+      window.netlifyIdentity.init();
+      window.netlifyIdentity.on("login", (user) => {
+        console.log("Logged in via Google:", user.email);
+        window.location.reload();
+      });
+      window.netlifyIdentity.on("logout", () => {
+        console.log("Logged out");
+        window.location.reload();
       });
     }
 
@@ -980,6 +1065,7 @@
     function hideIntro(){ elements.intro.classList.remove("show"); }
 
     function saveMessageLocal(){
+      if (!authState.user) {
       if (authState.role === "guest") {
         elements.messageToast.textContent = "Bitte anmelden, um zu speichern.";
         return;
@@ -1046,12 +1132,30 @@
     elements.saveLocalMsg.addEventListener("click", saveMessageLocal);
     elements.openRewards.addEventListener("click", () => openPanel(elements.panelRewards));
     elements.accountBtn.addEventListener("click", () => {
+      if (!authState.user) return openLogin();
       if (authState.role === "guest") return openLogin();
       return openAccount();
     });
     elements.logoutBtn.addEventListener("click", () => {
       if (window.netlifyIdentity) {
         window.netlifyIdentity.logout();
+      }
+    });
+    elements.accountProfileBtn.addEventListener("click", () => {
+      elements.accountMenu.classList.toggle("show");
+    });
+    elements.accountAdminBtn.addEventListener("click", () => {
+      if (authState.role !== "admin") return;
+      elements.accountMenu.classList.remove("show");
+      openPanel(elements.panelAdmin);
+      loadAdminUsers();
+    });
+    document.addEventListener("click", (event) => {
+      if (!authState.user) return;
+      const isMenuClick = elements.accountMenu.contains(event.target);
+      const isButtonClick = elements.accountBtn.contains(event.target);
+      if (!isMenuClick && !isButtonClick) {
+        elements.accountMenu.classList.remove("show");
       }
     });
     elements.accountAdminBtn.addEventListener("click", () => {
@@ -1076,6 +1180,7 @@
     elements.panelAdmin.addEventListener("show", loadAdminUsers);
 
     elements.saveSettings.addEventListener("click", () => {
+      if (!authState.user) return openLogin();
       if (authState.role === "guest") return openLogin();
       profile.name = elements.nameInput.value || DEFAULT_PROFILE.name;
       profile.nickname = elements.nicknameInput.value || profile.name;
@@ -1115,6 +1220,9 @@
       setCountdown();
       setInterval(setClock, 60000);
       setInterval(setCountdown, 60000);
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) setClock();
+      });
       if (!state.introSeen) showIntro();
       if (state.lastProjectId){
         const project = PROJECTS.find((p) => p.id === state.lastProjectId);
