@@ -141,6 +141,15 @@
     .btn.secondary{background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.16); box-shadow:none;} 
     .btn.ghost{background:transparent; border:1px solid rgba(255,255,255,.16); box-shadow:none;} 
     .btn:active{transform:translateY(1px) scale(.98)}
+    .pill{border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.06); color:var(--text); padding:8px 12px; border-radius:999px; display:inline-flex; align-items:center; gap:8px; font-weight:600;}
+    .account-avatar{width:26px; height:26px; border-radius:50%; object-fit:cover; border:1px solid rgba(255,255,255,.2);}
+    .google-mark{display:inline-flex; font-weight:700; letter-spacing:.2px;}
+    .google-mark span{display:inline-block;}
+    .g-blue{color:#4285f4;}
+    .g-red{color:#ea4335;}
+    .g-yellow{color:#fbbc05;}
+    .g-green{color:#34a853;}
+    .status-toast{margin-left:8px; font-size:12px; color:var(--muted);}
 
     @media (prefers-reduced-motion: reduce){
       .heart{animation:none}
@@ -149,6 +158,7 @@
       .intro-card .typewriter span{animation:none; opacity:1;}
     }
   </style>
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
 <body>
   <div class="orbs" aria-hidden="true">
@@ -166,6 +176,8 @@
         <span id="clock">00:00</span>
       </div>
       <div class="status-right">
+        <button class="pill" id="accountBtn" aria-label="Account">👤 Mit Google anmelden</button>
+        <span class="status-toast" id="loginError" style="display:none;"></span>
         <button class="pill" id="accountBtn" aria-label="Account">👤 Gast · Anmelden</button>
         <span id="userLabel">Fia 🌙</span>
         <span>🔋</span>
@@ -340,27 +352,22 @@
     </div>
   </div>
 
-  <div class="panel" id="panelLogin" aria-modal="true" role="dialog">
-    <div class="panel-card">
-      <h3>Anmelden</h3>
-      <p class="meta">Invite-only · kein öffentlicher Signup.</p>
-      <div style="display:grid; gap:10px; margin-top:12px;">
-        <input id="loginEmail" type="email" placeholder="Email" style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid var(--line); background:rgba(255,255,255,.06); color:var(--text);" />
-        <input id="loginPassword" type="password" placeholder="Passwort" style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid var(--line); background:rgba(255,255,255,.06); color:var(--text);" />
-      </div>
-      <div style="display:flex; gap:8px; margin-top:12px; justify-content:flex-end;">
-        <button class="btn" id="loginSubmit">Anmelden</button>
-        <button class="btn secondary" data-close="login">Abbrechen</button>
-      </div>
-      <div class="toast" id="loginToast"></div>
-    </div>
-  </div>
-
   <div class="panel" id="panelAccount" aria-modal="true" role="dialog">
     <div class="panel-card">
       <h3>Account</h3>
-      <p class="meta" id="accountMeta">—</p>
+      <div class="card" style="display:flex; gap:12px; align-items:center;">
+        <img id="accountAvatar" class="account-avatar" alt="Avatar" />
+        <div>
+          <div id="accountName" style="font-weight:600;">—</div>
+          <div class="meta" id="accountEmail">—</div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:12px;">
+        <div class="meta">Rolle</div>
+        <div id="accountRole" style="font-weight:600;">—</div>
+      </div>
       <div style="display:flex; gap:8px; margin-top:12px; justify-content:flex-end;">
+        <button class="btn secondary" id="accountAdminBtn" style="display:none;">Admin-Menü</button>
         <button class="btn secondary" id="logoutBtn">Logout</button>
         <button class="btn secondary" data-close="account">Schließen</button>
       </div>
@@ -431,8 +438,7 @@
     const authState = {
       user: null,
       role: "guest",
-      permissions: [],
-      token: sessionStorage.getItem("hub_token") || null
+      permissions: []
     };
 
     const loadJSON = (key, fallback) => {
@@ -443,7 +449,7 @@
     const saveJSON = (key, value) => {
       if (authState.role === "guest") return;
       localStorage.setItem(key, JSON.stringify(value));
-      if (authState.token) {
+      if (authState.user) {
         authFetch("/.netlify/functions/state-set", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -499,13 +505,13 @@
       messageToast: document.getElementById("messageToast"),
       openRewards: document.getElementById("openRewards"),
       accountBtn: document.getElementById("accountBtn"),
-      panelLogin: document.getElementById("panelLogin"),
+      loginError: document.getElementById("loginError"),
       panelAccount: document.getElementById("panelAccount"),
-      loginEmail: document.getElementById("loginEmail"),
-      loginPassword: document.getElementById("loginPassword"),
-      loginSubmit: document.getElementById("loginSubmit"),
-      loginToast: document.getElementById("loginToast"),
-      accountMeta: document.getElementById("accountMeta"),
+      accountAvatar: document.getElementById("accountAvatar"),
+      accountName: document.getElementById("accountName"),
+      accountEmail: document.getElementById("accountEmail"),
+      accountRole: document.getElementById("accountRole"),
+      accountAdminBtn: document.getElementById("accountAdminBtn"),
       logoutBtn: document.getElementById("logoutBtn"),
       panelAdmin: document.getElementById("panelAdmin"),
       adminDock: document.getElementById("adminDock"),
@@ -684,76 +690,100 @@
 
     async function authFetch(path, options = {}){
       const headers = options.headers || {};
-      if (authState.token) headers.Authorization = `Bearer ${authState.token}`;
+      const token = authState.user?.token?.access_token;
+      if (token) headers.Authorization = `Bearer ${token}`;
       return fetch(path, { ...options, headers });
     }
 
     async function loadSession(){
-      if (!authState.token) {
+      if (!window.netlifyIdentity) {
         authState.user = null;
         authState.role = "guest";
         authState.permissions = [];
         updateAccountUI();
         return;
       }
-      try {
-        const res = await authFetch("/.netlify/functions/me");
-        if (!res.ok) throw new Error("auth");
-        const data = await res.json();
-        authState.user = data.user;
-        authState.role = data.role || "user";
-        authState.permissions = data.permissions || [];
-        updateAccountUI();
-      } catch (err) {
+      const user = window.netlifyIdentity.currentUser();
+      if (!user) {
         authState.user = null;
         authState.role = "guest";
         authState.permissions = [];
-        sessionStorage.removeItem("hub_token");
         updateAccountUI();
+        return;
       }
+      authState.user = user;
+      authState.role = user.app_metadata?.role || "user";
+      authState.permissions = [];
+      updateAccountUI();
     }
 
     function updateAccountUI(){
-      const roleLabel = authState.role === "admin" ? "🛠 Admin" : authState.role === "user" ? "✨ User" : "👤 Gast";
-      const name = authState.user?.user_metadata?.full_name || authState.user?.email || "Gast";
-      elements.accountBtn.textContent = authState.role === "guest" ? "👤 Gast · Anmelden" : `${roleLabel} · ${name}`;
+      const displayName = authState.user?.user_metadata?.full_name
+        || authState.user?.user_metadata?.name
+        || authState.user?.email
+        || "Gast";
+      const email = authState.user?.email || "—";
+      const avatar = authState.user?.user_metadata?.avatar_url
+        || authState.user?.user_metadata?.picture
+        || "";
+      if (authState.role === "guest") {
+        elements.accountBtn.innerHTML = `
+          <span class="google-mark" aria-hidden="true">
+            <span class="g-blue">G</span><span class="g-red">o</span><span class="g-yellow">o</span><span class="g-blue">g</span><span class="g-green">l</span><span class="g-red">e</span>
+          </span>
+          <span>👤 Mit Google anmelden</span>
+        `;
+        elements.accountBtn.setAttribute("aria-label", "Mit Google anmelden");
+      } else {
+        const avatarImg = avatar ? `<img class="account-avatar" src="${avatar}" alt="" />` : "👤";
+        const roleLabel = authState.role === "admin" ? "Admin" : "User";
+        elements.accountBtn.innerHTML = `${avatarImg}<span>${displayName} · ${roleLabel}</span>`;
+        elements.accountBtn.setAttribute("aria-label", "Account öffnen");
+      }
       elements.adminDock.style.display = authState.role === "admin" ? "grid" : "none";
       elements.guestOverlay.style.display = authState.role === "guest" ? "flex" : "none";
-      if (elements.accountMeta) {
-        elements.accountMeta.textContent = authState.role === "guest"
-          ? "Du bist nicht eingeloggt."
-          : `${name} · Rolle: ${authState.role}`;
+      if (elements.accountAvatar) {
+        if (avatar) {
+          elements.accountAvatar.src = avatar;
+          elements.accountAvatar.style.display = "block";
+        } else {
+          elements.accountAvatar.removeAttribute("src");
+          elements.accountAvatar.style.display = "none";
+        }
+      }
+      if (elements.accountName) elements.accountName.textContent = displayName;
+      if (elements.accountEmail) elements.accountEmail.textContent = email;
+      if (elements.accountRole) elements.accountRole.textContent = authState.role;
+      if (elements.accountAdminBtn) {
+        elements.accountAdminBtn.style.display = authState.role === "admin" ? "inline-flex" : "none";
+      }
+      if (elements.loginError) {
+        elements.loginError.style.display = "none";
+        elements.loginError.textContent = "";
       }
     }
 
-    function openLogin(){ elements.panelLogin.classList.add("show"); }
+    function showLoginError(message){
+      if (!elements.loginError) return;
+      elements.loginError.textContent = message;
+      elements.loginError.style.display = "inline";
+    }
+
+    function openLogin(){
+      if (!window.netlifyIdentity) {
+        showLoginError("Google Login ist aktuell nicht verfügbar.");
+        return;
+      }
+      try {
+        window.netlifyIdentity.open("login", { provider: "google" });
+      } catch (err) {
+        showLoginError("Google Login ist aktuell nicht verfügbar.");
+      }
+    }
     function openAccount(){ elements.panelAccount.classList.add("show"); }
 
-    async function submitLogin(){
-      const email = elements.loginEmail.value.trim();
-      const password = elements.loginPassword.value.trim();
-      if (!email || !password) return;
-      try {
-        const res = await fetch("/.netlify/identity/token", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ grant_type: "password", email, password })
-        });
-        if (!res.ok) throw new Error("Login failed");
-        const data = await res.json();
-        sessionStorage.setItem("hub_token", data.access_token);
-        authState.token = data.access_token;
-        elements.panelLogin.classList.remove("show");
-        await loadSession();
-        await hydrateState();
-        location.reload();
-      } catch (err) {
-        elements.loginToast.textContent = "Login fehlgeschlagen.";
-      }
-    }
-
     async function hydrateState(){
-      if (!authState.token) return;
+      if (!authState.user) return;
       const namespaces = [STORAGE_KEYS.profile, STORAGE_KEYS.state, STORAGE_KEYS.rewards];
       const results = await Promise.all(namespaces.map((namespace) =>
         authFetch(`/.netlify/functions/state-get?namespace=${namespace}`).then((res) => res.ok ? res.json() : null)
@@ -985,7 +1015,6 @@
         if (target === "rewards") closePanel(elements.panelRewards);
         if (target === "message") closePanel(elements.panelMessage);
         if (target === "admin") closePanel(elements.panelAdmin);
-        if (target === "login") closePanel(elements.panelLogin);
         if (target === "account") closePanel(elements.panelAccount);
       });
     });
@@ -1020,14 +1049,16 @@
       if (authState.role === "guest") return openLogin();
       return openAccount();
     });
-    elements.loginSubmit.addEventListener("click", submitLogin);
     elements.logoutBtn.addEventListener("click", () => {
-      sessionStorage.removeItem("hub_token");
-      authState.token = null;
-      authState.user = null;
-      authState.role = "guest";
-      authState.permissions = [];
-      location.reload();
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.logout();
+      }
+    });
+    elements.accountAdminBtn.addEventListener("click", () => {
+      if (authState.role !== "admin") return;
+      closePanel(elements.panelAccount);
+      openPanel(elements.panelAdmin);
+      loadAdminUsers();
     });
 
     document.querySelectorAll("[data-admin-tab]").forEach((btn) => {
@@ -1070,6 +1101,7 @@
     };
 
     async function init(){
+      setupIdentity();
       await loadSession();
       await hydrateState();
       applyTheme(profile);

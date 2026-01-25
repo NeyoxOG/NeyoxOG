@@ -3,459 +3,534 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Luna das Lamm 🐑</title>
-  <meta name="theme-color" content="#1c1427" />
+  <title>Luna — Cozy Pet</title>
+  <meta name="theme-color" content="#f6dff2" />
   <style>
     :root{
-      --bg1:#140f1f;
-      --bg2:#23162f;
-      --glass: rgba(255,255,255,.08);
-      --glass-strong: rgba(255,255,255,.16);
-      --line: rgba(255,255,255,.18);
-      --text:#f7f5ff;
-      --muted: rgba(247,245,255,.65);
-      --accent:#ffd6e7;
-      --accent2:#ff9ec8;
-      --good:#35d07f;
-      --bad:#ff7b7b;
-      --shadow: 0 18px 50px rgba(0,0,0,.45);
-      --ease: cubic-bezier(.2,.8,.2,1);
+      --bg-sky:#fde9f4;
+      --bg-grass:#f1ffe8;
+      --bg-dusk:#f8e3ff;
+      --bg-night:#1c1a2e;
+      --card:rgba(255,255,255,.7);
+      --card-strong:rgba(255,255,255,.9);
+      --text:#2c2438;
+      --muted:rgba(44,36,56,.6);
+      --accent:#ff8cc6;
+      --accent-2:#ffd1e8;
+      --good:#57d48f;
+      --warn:#ffb257;
+      --bad:#ff6b6b;
+      --shadow:0 18px 40px rgba(68,44,92,.15);
+      --ease:cubic-bezier(.2,.8,.2,1);
     }
 
     *{box-sizing:border-box}
     html,body{height:100%}
     body{
       margin:0;
-      font-family: "SF Pro Display", "SF Pro Text", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      font-family:"SF Pro Display","SF Pro Text",ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
       color:var(--text);
-      background:
-        radial-gradient(900px 600px at 20% 20%, rgba(255,214,231,.18), transparent 60%),
-        radial-gradient(900px 600px at 80% 10%, rgba(255,158,200,.18), transparent 60%),
-        radial-gradient(900px 600px at 50% 85%, rgba(164,137,255,.18), transparent 60%),
-        linear-gradient(140deg, var(--bg1), var(--bg2));
+      background:linear-gradient(180deg,var(--bg-sky),var(--bg-grass));
       overflow:hidden;
-      line-height:1.5;
     }
 
-    body:before{
-      content:"";
-      position:fixed; inset:0;
-      pointer-events:none;
-      opacity:.08;
-      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency=".8" numOctaves="2" stitchTiles="stitch"/></filter><rect width="160" height="160" filter="url(%23n)" opacity=".25"/></svg>');
-      mix-blend-mode: overlay;
+    body.night{background:linear-gradient(180deg,#1f2038,#120f22); color:#f6f2ff;}
+    body.dusk{background:linear-gradient(180deg,var(--bg-dusk),var(--bg-grass));}
+
+    .app{height:100%; display:flex; flex-direction:column; padding:16px 14px 84px; gap:12px; position:relative;}
+
+    .topbar{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 14px; border-radius:20px; background:var(--card); box-shadow:var(--shadow); backdrop-filter: blur(14px);} 
+    .title{display:flex; align-items:center; gap:10px;}
+    .logo{width:44px; height:44px; border-radius:16px; background:linear-gradient(135deg,#ffe4f2,#ffd7e9); display:grid; place-items:center; font-weight:700; color:#8b3d77; box-shadow:0 12px 28px rgba(255,140,198,.35);} 
+    .title h1{margin:0; font-size:16px;}
+    .title p{margin:0; font-size:12px; color:var(--muted);} 
+
+    .pill{padding:6px 12px; border-radius:999px; background:rgba(255,255,255,.7); font-size:12px; color:var(--muted);}
+
+    .stage-card{flex:1; min-height:260px; border-radius:26px; background:var(--card); box-shadow:var(--shadow); padding:16px; display:flex; flex-direction:column; gap:10px; position:relative; overflow:hidden;}
+    .stage{flex:1; border-radius:22px; background:radial-gradient(120px 90px at 50% 20%, rgba(255,255,255,.9), transparent 60%),
+      radial-gradient(160px 90px at 50% 90%, rgba(255,255,255,.6), transparent 70%),
+      linear-gradient(180deg, rgba(255,255,255,.8), rgba(255,255,255,.5));
+      display:grid; place-items:center; position:relative;}
+
+    .luna{
+      width:min(280px, 80vw);
+      animation:breathe 4s ease-in-out infinite;
+      transform-origin:center;
     }
 
-    .wrap{height:100%; display:flex; flex-direction:column; padding:14px 14px 24px; gap:12px;}
+    .luna .head{animation:nod 6s ease-in-out infinite; transform-origin:center;}
+    .luna .blink{animation:blink 6s infinite; transform-origin:center;}
+    .luna .wiggle{animation:wiggle 7s ease-in-out infinite; transform-origin:center;}
 
-    .topbar{display:flex; align-items:center; justify-content:space-between; padding:10px 14px; border-radius:18px; background:rgba(255,255,255,.06); border:1px solid var(--line); backdrop-filter: blur(12px); box-shadow: var(--shadow);} 
-    .topbar .title{display:flex; align-items:center; gap:10px;}
-    .logo{width:40px; height:40px; border-radius:14px; background:linear-gradient(135deg, var(--accent), var(--accent2)); display:grid; place-items:center; font-size:20px; box-shadow:0 12px 30px rgba(255,214,231,.3);} 
-    .topbar h1{margin:0; font-size:16px;}
-    .topbar p{margin:0; font-size:12px; color:var(--muted);} 
+    .emotion{position:absolute; top:16px; right:16px; font-size:13px; color:var(--muted); display:flex; align-items:center; gap:6px;}
 
-    .info{display:grid; gap:10px;}
-    .pill-row{display:flex; gap:8px; flex-wrap:wrap;}
-    .pill{padding:6px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.08); font-size:12px; color:var(--muted);} 
+    .status-ring{display:grid; gap:8px;}
+    .rings{display:grid; grid-template-columns:repeat(3,1fr); gap:8px;}
+    .ring{background:rgba(255,255,255,.8); border-radius:16px; padding:10px; text-align:center;}
+    .ring strong{display:block; font-size:14px;}
+    .ring span{font-size:12px; color:var(--muted);} 
 
-    .card{border-radius:20px; border:1px solid var(--line); background:rgba(255,255,255,.06); padding:12px; backdrop-filter: blur(10px); box-shadow: var(--shadow);} 
-    .stats{display:grid; gap:8px;} 
-    .stat{display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:12px;} 
-    .bar{height:8px; border-radius:999px; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.12); overflow:hidden; flex:1;} 
-    .bar span{display:block; height:100%; width:50%; background:linear-gradient(90deg, var(--accent), var(--accent2)); transition: width .4s var(--ease);} 
+    .cta-row{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px;}
+    .btn{border:0; border-radius:16px; padding:12px 10px; background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:#fff; font-weight:600; box-shadow:0 12px 30px rgba(255,140,198,.35); cursor:pointer; display:grid; gap:4px; place-items:center; min-height:64px;}
+    .btn.secondary{background:rgba(255,255,255,.8); color:var(--text); box-shadow:none; border:1px solid rgba(0,0,0,.05);} 
+    .btn:active{transform:translateY(1px);}
 
-    .pet-area{flex:1; display:grid; place-items:center; position:relative;}
-    .pet-stage{width:min(320px, 80vw); aspect-ratio:3/4; border-radius:26px; border:1px solid rgba(255,255,255,.2); background:rgba(0,0,0,.25); position:relative; overflow:hidden; box-shadow: var(--shadow);} 
-    .pet-stage:before{content:""; position:absolute; inset:0; background:radial-gradient(circle at 30% 20%, rgba(255,255,255,.15), transparent 60%);} 
+    .tabs{display:none;}
+    .tab{display:none; flex-direction:column; gap:12px;}
+    .tab.active{display:flex;}
 
-    .pet{
-      position:absolute; inset:0; display:grid; place-items:center;
-      animation: breathe 4s ease-in-out infinite;
-    }
-    @keyframes breathe{0%,100%{transform:translateY(0);} 50%{transform:translateY(3px);} }
+    .card{background:var(--card); border-radius:20px; padding:14px; box-shadow:var(--shadow);} 
 
-    .blink{animation: blink 6s infinite;} 
-    @keyframes blink{0%,94%,100%{transform:scaleY(1);} 96%{transform:scaleY(.1);} }
+    .stat-row{display:grid; gap:10px;}
+    .stat{display:grid; gap:6px; font-size:12px; color:var(--muted);} 
+    .bar{height:8px; border-radius:999px; background:rgba(0,0,0,.06); overflow:hidden;}
+    .bar span{display:block; height:100%; background:linear-gradient(90deg,var(--accent),#ffd1e8); transition:width .35s var(--ease);} 
 
-    .ear-wiggle{animation: earWiggle 8s ease-in-out infinite;} 
-    @keyframes earWiggle{0%,92%,100%{transform:rotate(0deg);} 95%{transform:rotate(8deg);} }
+    .nav{position:fixed; left:0; right:0; bottom:0; padding:12px 16px; background:rgba(255,255,255,.9); backdrop-filter: blur(16px); display:grid; grid-template-columns:repeat(5,1fr); gap:8px; border-top:1px solid rgba(0,0,0,.05);} 
+    .nav button{border:0; background:transparent; display:grid; gap:4px; place-items:center; font-size:11px; color:var(--muted); padding:8px 6px; border-radius:12px; cursor:pointer;}
+    .nav button.active{background:rgba(255,140,198,.2); color:var(--text); font-weight:600;}
 
-    .particles{position:absolute; inset:0; pointer-events:none; display:grid; place-items:center; font-size:18px;} 
+    .timeline{display:grid; gap:8px; max-height:200px; overflow:auto;}
+    .event{background:rgba(255,255,255,.8); border-radius:14px; padding:10px; font-size:12px; color:var(--muted);}
 
-    .actions{position:sticky; bottom:0; display:grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap:8px; padding:10px; background:rgba(20,15,31,.75); border:1px solid rgba(255,255,255,.1); border-radius:20px; backdrop-filter: blur(10px);} 
-    .action-btn{border:1px solid rgba(255,255,255,.18); border-radius:16px; background:rgba(255,255,255,.08); color:var(--text); padding:8px 6px; font-size:12px; display:grid; gap:4px; place-items:center; cursor:pointer; min-height:56px;} 
-    .action-btn:disabled{opacity:.4; cursor:not-allowed;} 
+    .reward-grid{display:grid; gap:10px;}
+    .reward{display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border-radius:14px; background:rgba(255,255,255,.85);} 
+    .reward strong{font-size:13px;}
 
-    .footer{display:flex; justify-content:space-between; align-items:center; gap:10px;} 
-    .btn{border:0; cursor:pointer; padding:10px 14px; border-radius:14px; color:var(--text); background: linear-gradient(135deg, var(--accent), var(--accent2)); font-weight:700; letter-spacing:.2px; display:inline-flex; align-items:center; gap:8px; box-shadow:0 10px 30px rgba(255,214,231,.2); transition: transform .12s var(--ease);} 
-    .btn.secondary{background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.16); box-shadow:none;} 
-    .btn.ghost{background:transparent; border:1px solid rgba(255,255,255,.16); box-shadow:none;} 
-    .btn:active{transform:translateY(1px) scale(.98)}
+    .mini-game{display:grid; place-items:center; gap:10px;}
+    .game-area{height:200px; border-radius:18px; background:rgba(255,255,255,.8); position:relative; overflow:hidden;}
+    .ball{position:absolute; width:42px; height:42px; border-radius:50%; background:linear-gradient(135deg,#ffd1e8,#ff8cc6); display:grid; place-items:center; color:white; font-weight:700; cursor:pointer; box-shadow:0 12px 24px rgba(255,140,198,.4);} 
 
-    .overlay{position:fixed; inset:0; display:none; place-items:center; background:rgba(0,0,0,.6); backdrop-filter: blur(10px); z-index:50; padding:16px;} 
-    .overlay.show{display:grid;} 
-    .overlay-card{max-width:420px; padding:20px; border-radius:24px; border:1px solid rgba(255,255,255,.2); background:rgba(0,0,0,.5); text-align:center;} 
+    .checklist{display:grid; gap:8px;}
+    .check{display:flex; align-items:center; justify-content:space-between; font-size:13px; padding:8px 10px; border-radius:12px; background:rgba(255,255,255,.85);} 
 
-    .history{max-height:140px; overflow:auto; display:grid; gap:6px; font-size:12px; color:var(--muted);} 
+    .badge{padding:4px 8px; border-radius:999px; font-size:11px; background:rgba(255,255,255,.8); color:var(--muted);}
 
-    .toggle{display:flex; align-items:center; gap:8px; font-size:12px; color:var(--muted);} 
+    .overlay{position:fixed; inset:0; display:none; place-items:center; background:rgba(30,24,40,.45); backdrop-filter: blur(10px); z-index:20; padding:16px;}
+    .overlay.show{display:grid;}
+    .overlay-card{background:rgba(255,255,255,.95); border-radius:24px; padding:20px; max-width:380px; text-align:center; box-shadow:var(--shadow);} 
+
+    .sparkles{position:absolute; inset:0; pointer-events:none;}
+
+    @keyframes breathe{0%,100%{transform:translateY(0);} 50%{transform:translateY(4px);} }
+    @keyframes nod{0%,100%{transform:rotate(0deg);} 50%{transform:rotate(-2deg);} }
+    @keyframes blink{0%,92%,100%{transform:scaleY(1);} 94%{transform:scaleY(.1);} }
+    @keyframes wiggle{0%,100%{transform:rotate(0deg);} 50%{transform:rotate(4deg);} }
 
     @media (prefers-reduced-motion: reduce){
-      .pet{animation:none;}
-      .blink, .ear-wiggle{animation:none;}
+      .luna,.luna .head,.luna .blink,.luna .wiggle{animation:none;}
     }
   </style>
 </head>
 <body>
-  <div class="wrap">
+  <div class="app">
     <div class="topbar">
       <div class="title">
-        <div class="logo">🐑</div>
+        <div class="logo">L</div>
         <div>
-          <h1>Luna das Lamm</h1>
-          <p>Kümmer dich täglich um Luna</p>
+          <h1>Luna 🐑</h1>
+          <p>Dein cozy Begleiter</p>
         </div>
       </div>
-      <button class="btn ghost" id="backBtn" aria-label="Zurück">← Hub</button>
+      <div class="pill" id="streakPill">Streak 0</div>
     </div>
 
-    <div class="info">
-      <div class="pill-row">
-        <div class="pill" id="lastSeen">Zuletzt geöffnet: —</div>
-        <div class="pill" id="streak">Streak: 0 Tage (Best: 0)</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="stats" id="stats"></div>
-    </div>
-
-    <div class="pet-area">
-      <div class="pet-stage">
-        <svg class="pet" id="petSvg" viewBox="0 0 300 400" aria-label="Luna">
+    <div class="stage-card">
+      <div class="emotion" id="emotionLabel">Luna fühlt sich okay</div>
+      <div class="stage">
+        <svg class="luna" id="lunaSvg" viewBox="0 0 320 360" role="img" aria-label="Luna">
           <defs>
-            <radialGradient id="wool" cx="50%" cy="40%" r="60%">
-              <stop offset="0%" stop-color="#fff6fb" />
-              <stop offset="100%" stop-color="#f4dcea" />
+            <radialGradient id="woolSoft" cx="50%" cy="35%" r="60%">
+              <stop offset="0%" stop-color="#ffffff" />
+              <stop offset="100%" stop-color="#f7dff0" />
             </radialGradient>
           </defs>
-          <ellipse cx="150" cy="210" rx="90" ry="80" fill="url(#wool)" />
-          <ellipse cx="150" cy="240" rx="70" ry="60" fill="#f9e8f2" />
-          <circle cx="115" cy="190" r="8" fill="#3b2f3d" class="blink" />
-          <circle cx="185" cy="190" r="8" fill="#3b2f3d" class="blink" />
-          <circle cx="112" cy="187" r="3" fill="#fff" />
-          <circle cx="182" cy="187" r="3" fill="#fff" />
-          <path d="M135 220 Q150 235 165 220" stroke="#3b2f3d" stroke-width="6" stroke-linecap="round" fill="none" />
-          <circle cx="110" cy="215" r="6" fill="#ffb9d2" opacity=".7" />
-          <circle cx="190" cy="215" r="6" fill="#ffb9d2" opacity=".7" />
-          <path class="ear-wiggle" d="M70 170 Q60 140 90 130" stroke="#f2c6dc" stroke-width="16" stroke-linecap="round" fill="none" />
-          <path class="ear-wiggle" d="M230 170 Q240 140 210 130" stroke="#f2c6dc" stroke-width="16" stroke-linecap="round" fill="none" />
-          <g id="outfit" style="display:none;">
-            <path d="M140 255 Q150 270 160 255" fill="#ff7bb1" />
-            <circle cx="150" cy="258" r="6" fill="#ff9ec8" />
+          <g class="head">
+            <ellipse cx="160" cy="180" rx="110" ry="95" fill="url(#woolSoft)" />
+            <ellipse cx="160" cy="200" rx="90" ry="75" fill="#ffeef8" />
+            <ellipse cx="105" cy="145" rx="26" ry="48" fill="#f6cfe2" class="wiggle" />
+            <ellipse cx="215" cy="145" rx="26" ry="48" fill="#f6cfe2" class="wiggle" />
+            <circle cx="125" cy="175" r="16" fill="#3b2f3d" />
+            <circle cx="195" cy="175" r="16" fill="#3b2f3d" />
+            <circle cx="123" cy="170" r="6" fill="#fff" class="blink" />
+            <circle cx="193" cy="170" r="6" fill="#fff" class="blink" />
+            <path id="mouth" d="M145 210 Q160 225 175 210" stroke="#3b2f3d" stroke-width="8" stroke-linecap="round" fill="none" />
+            <circle cx="120" cy="210" r="8" fill="#ffb8d6" />
+            <circle cx="200" cy="210" r="8" fill="#ffb8d6" />
           </g>
+          <g id="effects"></g>
         </svg>
-        <div class="particles" id="particles"></div>
+        <canvas class="sparkles" id="sparkles" aria-hidden="true"></canvas>
+      </div>
+
+      <div class="rings">
+        <div class="ring"><strong id="hungerVal">0</strong><span>Hunger</span></div>
+        <div class="ring"><strong id="happyVal">0</strong><span>Glück</span></div>
+        <div class="ring"><strong id="energyVal">0</strong><span>Energie</span></div>
+      </div>
+
+      <div class="cta-row">
+        <button class="btn" id="feedBtn" aria-label="Luna füttern">Füttern</button>
+        <button class="btn" id="petBtn" aria-label="Luna streicheln">Streicheln</button>
+        <button class="btn" id="sleepBtn" aria-label="Luna schlafen lassen">Schlafen</button>
       </div>
     </div>
 
-    <div class="card">
-      <div class="toggle">
-        <input type="checkbox" id="outfitToggle" />
-        <label for="outfitToggle">🎀 Outfit an/aus</label>
-      </div>
-      <div class="history" id="history"></div>
+    <div class="tabs" id="tabs">
+      <section class="tab" data-tab="home"></section>
+      <section class="tab" data-tab="care">
+        <div class="card">
+          <h3>Pflege</h3>
+          <div class="stat-row">
+            <button class="btn secondary" id="brushBtn">Bürsten</button>
+            <button class="btn secondary" id="bathBtn">Baden</button>
+            <button class="btn secondary" id="medBtn">Medizin geben</button>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Tagespflege</h3>
+          <div class="checklist" id="dailyChecklist"></div>
+        </div>
+      </section>
+      <section class="tab" data-tab="play">
+        <div class="card mini-game">
+          <h3>Herzen fangen</h3>
+          <p class="badge" id="gameTimer">15s</p>
+          <div class="game-area" id="gameArea"></div>
+          <button class="btn" id="startGameBtn">Spielen starten</button>
+        </div>
+      </section>
+      <section class="tab" data-tab="timeline">
+        <div class="card">
+          <h3>Timeline</h3>
+          <div class="timeline" id="timeline"></div>
+        </div>
+      </section>
+      <section class="tab" data-tab="rewards">
+        <div class="card">
+          <h3>Rewards</h3>
+          <div class="reward-grid" id="rewardGrid"></div>
+        </div>
+      </section>
     </div>
-
-    <div class="actions" id="actions"></div>
   </div>
+
+  <nav class="nav" aria-label="Navigation">
+    <button class="active" data-nav="home">Home</button>
+    <button data-nav="care">Pflege</button>
+    <button data-nav="play">Spielen</button>
+    <button data-nav="timeline">Timeline</button>
+    <button data-nav="rewards">Rewards</button>
+  </nav>
 
   <div class="overlay" id="dailyOverlay">
     <div class="overlay-card">
-      <h2>Neuer Tag mit Luna 🌙</h2>
-      <p id="dailyText">Streak: 0</p>
-      <button class="btn" id="dailyClose">Okay</button>
-    </div>
-  </div>
-
-  <div class="overlay" id="secretNote">
-    <div class="overlay-card">
-      <h2>Secret Note 💌</h2>
-      <p>Fia, unser kleines Wir lebt hier drin. 🐑🤍<br/>— Dein Collin</p>
-      <button class="btn" id="secretClose">Danke</button>
+      <h2>Daily Streak ✨</h2>
+      <p id="dailyMessage">Großartig! Heute alles erledigt.</p>
+      <button class="btn" id="dailyClose">Weiter</button>
     </div>
   </div>
 
   <script>
-    const STORAGE_KEY = "luna_state_v1";
-    const now = () => Date.now();
-    const formatDateKey = (date) => {
-      const d = new Date(date);
-      const tzOffset = d.getTimezoneOffset() * 60000;
-      const local = new Date(d.getTime() - tzOffset);
-      return local.toISOString().slice(0, 10);
-    };
-
-    const defaultState = () => ({
-      version: 1,
-      petName: "Luna",
-      createdAt: now(),
-      lastOpenedAt: now(),
-      stats: { hunger: 72, love: 65, energy: 55, fun: 40, clean: 80 },
-      lastActions: { feedAt: 0, petAt: 0, sleepAt: 0, playAt: 0, cleanAt: 0 },
-      daily: {
-        dateKey: formatDateKey(now()),
-        actionsDone: { feed: 0, pet: 0, sleep: 0, play: 0, clean: 0 },
-        maxPerDay: { feed: 3, pet: 6, sleep: 2, play: 4, clean: 2 },
-        streak: 0,
-        bestStreak: 0
-      },
-      history: [],
-      unlocks: { levelsUnlocked: [], outfitOn: false, uniqueDays: [] }
+    const STORAGE_KEY = "luna_state_v2";
+    const DEFAULT_STATE = () => ({
+      stats: { hunger: 70, happiness: 70, energy: 60, cleanliness: 80, health: 85 },
+      lastTick: Date.now(),
+      streak: { current: 0, best: 0, lastDate: null },
+      daily: { date: null, feed: false, pet: false, brush: false, sleep: false },
+      xp: 0,
+      level: 1,
+      inventory: [],
+      rewards: [],
+      events: [],
+      lastActions: {}
     });
 
-    const loadState = () => {
-      try {
+    const elements = {
+      hungerVal: document.getElementById("hungerVal"),
+      happyVal: document.getElementById("happyVal"),
+      energyVal: document.getElementById("energyVal"),
+      feedBtn: document.getElementById("feedBtn"),
+      petBtn: document.getElementById("petBtn"),
+      sleepBtn: document.getElementById("sleepBtn"),
+      brushBtn: document.getElementById("brushBtn"),
+      bathBtn: document.getElementById("bathBtn"),
+      medBtn: document.getElementById("medBtn"),
+      streakPill: document.getElementById("streakPill"),
+      timeline: document.getElementById("timeline"),
+      rewardGrid: document.getElementById("rewardGrid"),
+      dailyChecklist: document.getElementById("dailyChecklist"),
+      dailyOverlay: document.getElementById("dailyOverlay"),
+      dailyMessage: document.getElementById("dailyMessage"),
+      dailyClose: document.getElementById("dailyClose"),
+      gameArea: document.getElementById("gameArea"),
+      gameTimer: document.getElementById("gameTimer"),
+      startGameBtn: document.getElementById("startGameBtn"),
+      emotionLabel: document.getElementById("emotionLabel"),
+      mouth: document.getElementById("mouth"),
+      sparkles: document.getElementById("sparkles")
+    };
+
+    const storageBridge = {
+      async get(){
+        try {
+          if (window.parent && window.parent.FIA_STORAGE) {
+            return await window.parent.FIA_STORAGE.getState("luna");
+          }
+        } catch (err) {}
         const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return defaultState();
-        return JSON.parse(raw);
-      } catch {
-        return defaultState();
+        return raw ? JSON.parse(raw) : null;
+      },
+      async set(state){
+        try {
+          if (window.parent && window.parent.FIA_STORAGE) {
+            await window.parent.FIA_STORAGE.setState("luna", state);
+            return;
+          }
+        } catch (err) {}
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      },
+      unlockReward(key){
+        try {
+          if (window.parent && window.parent.FIA_STORAGE) {
+            window.parent.FIA_STORAGE.unlockReward("luna", key);
+          }
+        } catch (err) {}
       }
     };
 
-    const saveState = (state) => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    };
+    let state = DEFAULT_STATE();
 
-    const state = loadState();
+    const clamp = (value, min = 0, max = 100) => Math.max(min, Math.min(max, value));
+    const now = () => Date.now();
+    const dayKey = (time) => new Date(time).toISOString().slice(0,10);
 
-    const statsEl = document.getElementById("stats");
-    const historyEl = document.getElementById("history");
-    const streakEl = document.getElementById("streak");
-    const lastSeenEl = document.getElementById("lastSeen");
-    const particles = document.getElementById("particles");
-    const outfitToggle = document.getElementById("outfitToggle");
-    const outfit = document.getElementById("outfit");
-    const dailyOverlay = document.getElementById("dailyOverlay");
-    const dailyText = document.getElementById("dailyText");
-    const secretNote = document.getElementById("secretNote");
+    const rewardCatalog = [
+      { id: "theme_meadow", title: "Neuer Hintergrund", level: 2 },
+      { id: "accessory_bow", title: "Schleife freigeschaltet", level: 4 },
+      { id: "heart_fx", title: "Herz-Partikel Upgrade", level: 6 },
+      { id: "photo_mode", title: "Foto-Modus", level: 8 },
+      { id: "secret_note", title: "Secret Note", level: 10 }
+    ];
 
-    const actionsConfig = {
-      feed: { label: "🍎 Füttern", delta: { hunger: 14, love: 2, clean: -1 }, note: "🍎 Apfel" },
-      pet: { label: "🤍 Streicheln", delta: { love: 10, fun: 2 }, note: "🤍 Streicheln" },
-      sleep: { label: "😴 Schlafen", delta: { energy: 18, hunger: -3 }, note: "😴 Schlaf" },
-      play: { label: "🧸 Spielen", delta: { fun: 14, hunger: -4, energy: -3, love: 2 }, note: "🧸 Spielzeit" },
-      clean: { label: "🧼 Sauber", delta: { clean: 16, love: 1 }, note: "🧼 Sauber" }
-    };
-
-    const clamp = (value) => Math.max(0, Math.min(100, Math.round(value)));
-
-    function applyDecay(){
-      const dtHours = Math.max(0, (now() - state.lastOpenedAt) / 3600000);
-      if (!dtHours) return;
-      state.stats.hunger = clamp(state.stats.hunger - 4 * dtHours);
-      state.stats.energy = clamp(state.stats.energy - 3 * dtHours);
-      state.stats.fun = clamp(state.stats.fun - 2.5 * dtHours);
-      state.stats.clean = clamp(state.stats.clean - 2 * dtHours);
-      state.stats.love = clamp(state.stats.love - 1.2 * dtHours);
+    function applyDecay() {
+      const diffHours = (now() - state.lastTick) / 36e5;
+      if (diffHours <= 0) return;
+      state.stats.hunger = clamp(state.stats.hunger - diffHours * 6);
+      state.stats.happiness = clamp(state.stats.happiness - diffHours * 2);
+      state.stats.cleanliness = clamp(state.stats.cleanliness - diffHours * 1.2);
+      state.stats.energy = clamp(state.stats.energy - diffHours * 3);
+      if (state.stats.hunger < 20 || state.stats.cleanliness < 30) {
+        state.stats.health = clamp(state.stats.health - diffHours * 2.5);
+      } else {
+        state.stats.health = clamp(state.stats.health + diffHours * 0.8);
+      }
+      state.lastTick = now();
     }
 
-    function checkDailyReset(){
-      const todayKey = formatDateKey(now());
-      if (state.daily.dateKey !== todayKey){
-        const goodDay = state.daily.actionsDone.feed >= 1 && state.daily.actionsDone.pet >= 1;
-        state.daily.streak = goodDay ? state.daily.streak + 1 : 0;
-        state.daily.bestStreak = Math.max(state.daily.bestStreak, state.daily.streak);
-        state.daily.actionsDone = { feed: 0, pet: 0, sleep: 0, play: 0, clean: 0 };
-        state.daily.dateKey = todayKey;
-        dailyText.textContent = `Streak: ${state.daily.streak}`;
-        dailyOverlay.classList.add("show");
-      }
-      if (!state.unlocks.uniqueDays.includes(todayKey)){
-        state.unlocks.uniqueDays.push(todayKey);
+    function ensureDaily(){
+      const today = dayKey(now());
+      if (state.daily.date !== today) {
+        const completed = state.daily.feed && state.daily.pet && state.daily.brush && state.daily.sleep;
+        if (state.daily.date) {
+          if (completed) {
+            state.streak.current += 1;
+            state.streak.best = Math.max(state.streak.best, state.streak.current);
+            gainXP(50);
+            elements.dailyMessage.textContent = `Streak +1! Jetzt ${state.streak.current} Tage.`;
+            elements.dailyOverlay.classList.add("show");
+          } else if (state.streak.current > 0) {
+            state.streak.current = Math.max(0, state.streak.current - 1);
+          }
+        }
+        state.daily = { date: today, feed: false, pet: false, brush: false, sleep: false };
       }
     }
 
-    function mood(){
-      const { hunger, love, energy, fun, clean } = state.stats;
-      if (love < 25) return "sad";
-      if (clean < 30) return "dirty";
-      if (hunger < 30) return "hungry";
-      if (energy < 30) return "sleepy";
-      if (fun < 25) return "bored";
-      if (hunger > 60 && love > 60 && energy > 50 && fun > 45 && clean > 45) return "happy";
-      return "idle";
+    function gainXP(amount){
+      state.xp += amount;
+      const nextLevel = state.level * 100;
+      if (state.xp >= nextLevel) {
+        state.xp -= nextLevel;
+        state.level += 1;
+        const reward = rewardCatalog.find((r) => r.level === state.level);
+        if (reward) {
+          state.rewards.push(reward.id);
+          storageBridge.unlockReward(reward.id);
+        }
+      }
     }
 
-    function renderStats(){
-      statsEl.innerHTML = "";
-      const entries = [
-        { key: "hunger", label: "Hunger" },
-        { key: "love", label: "Liebe" },
-        { key: "energy", label: "Energie" },
-        { key: "fun", label: "Spaß" },
-        { key: "clean", label: "Sauber" }
+    function addEvent(text){
+      state.events.unshift({ text, ts: now() });
+      state.events = state.events.slice(0, 30);
+    }
+
+    function updateEmotion(){
+      const { hunger, happiness, energy, cleanliness, health } = state.stats;
+      let label = "Luna fühlt sich okay";
+      let mouth = "M145 210 Q160 225 175 210";
+      if (health < 40) {
+        label = "Luna ist krank 🤒";
+        mouth = "M145 220 Q160 210 175 220";
+      } else if (hunger < 30) {
+        label = "Luna hat Hunger";
+        mouth = "M145 220 Q160 210 175 220";
+      } else if (energy < 30) {
+        label = "Luna ist müde";
+        mouth = "M145 220 Q160 210 175 220";
+      } else if (cleanliness < 30) {
+        label = "Luna ist etwas schmutzig";
+      } else if (happiness > 80) {
+        label = "Luna ist happy ✨";
+      }
+      elements.emotionLabel.textContent = label;
+      elements.mouth.setAttribute("d", mouth);
+    }
+
+    function render(){
+      const { hunger, happiness, energy } = state.stats;
+      elements.hungerVal.textContent = Math.round(hunger);
+      elements.happyVal.textContent = Math.round(happiness);
+      elements.energyVal.textContent = Math.round(energy);
+      elements.streakPill.textContent = `Streak ${state.streak.current}`;
+      updateEmotion();
+      renderTimeline();
+      renderChecklist();
+      renderRewards();
+      elements.medBtn.disabled = state.stats.health >= 50;
+      updateDayTheme();
+    }
+
+    function renderTimeline(){
+      elements.timeline.innerHTML = state.events.map((event) => {
+        const time = new Date(event.ts).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+        return `<div class="event">${time} — ${event.text}</div>`;
+      }).join("") || "<div class=\"event\">Noch keine Einträge.</div>";
+    }
+
+    function renderChecklist(){
+      const items = [
+        { key: "feed", label: "Füttern" },
+        { key: "pet", label: "Streicheln" },
+        { key: "brush", label: "Bürsten" },
+        { key: "sleep", label: "Schlafen" }
       ];
-      entries.forEach((entry) => {
-        const row = document.createElement("div");
-        row.className = "stat";
-        row.innerHTML = `
-          <span>${entry.label}</span>
-          <div class="bar"><span style="width:${state.stats[entry.key]}%"></span></div>
-          <span>${state.stats[entry.key]}</span>
-        `;
-        statsEl.appendChild(row);
-      });
-      streakEl.textContent = `Streak: ${state.daily.streak} Tage (Best: ${state.daily.bestStreak})`;
-      lastSeenEl.textContent = `Zuletzt geöffnet: ${new Date(state.lastOpenedAt).toLocaleString("de-DE")}`;
+      elements.dailyChecklist.innerHTML = items.map((item) => {
+        const done = state.daily[item.key];
+        return `<div class="check">${item.label}<span class="badge">${done ? "✔" : "•"}</span></div>`;
+      }).join("");
     }
 
-    function renderHistory(){
-      historyEl.innerHTML = "";
-      const recent = state.history.slice(-15).reverse();
-      recent.forEach((entry) => {
-        const line = document.createElement("div");
-        line.textContent = `${new Date(entry.ts).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })} · ${entry.note}`;
-        historyEl.appendChild(line);
-      });
+    function renderRewards(){
+      elements.rewardGrid.innerHTML = rewardCatalog.map((reward) => {
+        const unlocked = state.rewards.includes(reward.id) || state.level >= reward.level;
+        return `<div class="reward"><strong>${reward.title}</strong><span>${unlocked ? "✅" : "🔒"}</span></div>`;
+      }).join("");
     }
 
-    function renderActions(){
-      const container = document.getElementById("actions");
-      container.innerHTML = "";
-      Object.keys(actionsConfig).forEach((key) => {
-        const config = actionsConfig[key];
-        const btn = document.createElement("button");
-        const done = state.daily.actionsDone[key];
-        const max = state.daily.maxPerDay[key];
-        btn.className = "action-btn";
-        btn.innerHTML = `<div>${config.label}</div><div>${done}/${max}</div>`;
-        if (done >= max) btn.disabled = true;
-        btn.addEventListener("click", () => performAction(key));
-        container.appendChild(btn);
-      });
+    function updateDayTheme(){
+      const hour = new Date().getHours();
+      document.body.classList.toggle("night", hour >= 21 || hour < 6);
+      document.body.classList.toggle("dusk", hour >= 18 && hour < 21);
     }
 
-    function logAction(type, delta, note){
-      state.history.push({ ts: now(), type, delta, note });
-      if (state.history.length > 120) state.history.shift();
-    }
-
-    function performAction(type){
-      const config = actionsConfig[type];
-      if (state.daily.actionsDone[type] >= state.daily.maxPerDay[type]) return;
-      Object.keys(config.delta).forEach((stat) => {
-        state.stats[stat] = clamp(state.stats[stat] + config.delta[stat]);
-      });
-      state.daily.actionsDone[type] += 1;
-      state.lastActions[`${type}At`] = now();
-      logAction(type, config.delta, config.note);
-      saveState(state);
-      renderStats();
-      renderActions();
-      renderHistory();
-      triggerParticles(type);
-      checkUnlocks();
-    }
-
-    function triggerParticles(type){
-      const map = { feed: "🍎", pet: "🤍", sleep: "💤", play: "✨", clean: "🧼" };
-      particles.textContent = map[type] || "✨";
-      particles.style.opacity = "1";
-      setTimeout(() => { particles.style.opacity = "0"; }, 800);
-    }
-
-    function checkUnlocks(){
-      const levelSet = new Set(state.unlocks.levelsUnlocked);
-      if (state.daily.actionsDone.feed >= 1 && !levelSet.has(1)) unlockLevel(1);
-      if (state.daily.streak >= 3 && !levelSet.has(2)) unlockLevel(2);
-      if (mood() === "happy"){
-        state.unlocks.happyTicks = (state.unlocks.happyTicks || 0) + 1;
-      } else {
-        state.unlocks.happyTicks = 0;
-      }
-      if (state.unlocks.happyTicks >= 10 && !levelSet.has(3)) unlockLevel(3);
-      const routine = state.daily.actionsDone.feed >= 1 && state.daily.actionsDone.pet >= 1 && state.daily.actionsDone.play >= 1 && state.daily.actionsDone.clean >= 1;
-      if (routine && !levelSet.has(4)) unlockLevel(4);
-      const totalActions = state.history.length;
-      if ((state.daily.bestStreak >= 5 || totalActions >= 60) && !levelSet.has(5)) unlockLevel(5);
-      if ((state.daily.bestStreak >= 10 || state.unlocks.uniqueDays.length >= 14) && !levelSet.has(6)) {
-        unlockLevel(6);
-        secretNote.classList.add("show");
-      }
-    }
-
-    function unlockLevel(level){
-      state.unlocks.levelsUnlocked.push(level);
-      state.unlocks.levelsUnlocked = Array.from(new Set(state.unlocks.levelsUnlocked));
-      saveState(state);
-      syncHub(level);
-      if (level === 5) {
-        state.unlocks.outfitOn = true;
-        outfitToggle.checked = true;
-        outfit.style.display = "block";
-      }
-    }
-
-    function syncHub(level){
-      try {
-        if (window.parent && window.parent.HUB_REWARDS) {
-          window.parent.HUB_REWARDS.setProgress("luna", state.unlocks.levelsUnlocked.length, 6);
-          window.parent.HUB_REWARDS.unlockByLevel("luna", level);
-        }
-      } catch (err) {
-        // Ignore missing hub.
-      }
-    }
-
-    function applyOutfit(){
-      outfit.style.display = state.unlocks.outfitOn ? "block" : "none";
-    }
-
-    function handleBack(){
-      try {
-        if (window.parent && window.parent.document) {
-          const closeBtn = window.parent.document.getElementById("closeApp");
-          if (closeBtn) { closeBtn.click(); return; }
-        }
-      } catch (err) {
-        // Ignore cross-origin.
-      }
-      if (window.history.length > 1){
-        window.history.back();
-      } else {
-        window.location.href = "index.html";
-      }
-    }
-
-    document.getElementById("backBtn").addEventListener("click", handleBack);
-    document.getElementById("dailyClose").addEventListener("click", () => dailyOverlay.classList.remove("show"));
-    document.getElementById("secretClose").addEventListener("click", () => secretNote.classList.remove("show"));
-
-    outfitToggle.addEventListener("change", () => {
-      state.unlocks.outfitOn = outfitToggle.checked;
-      applyOutfit();
-      saveState(state);
-    });
-
-    function init(){
+    function tick(){
       applyDecay();
-      checkDailyReset();
-      state.lastOpenedAt = now();
-      saveState(state);
-      renderStats();
-      renderActions();
-      renderHistory();
-      applyOutfit();
-      outfitToggle.checked = state.unlocks.outfitOn;
+      ensureDaily();
+      render();
+      storageBridge.set(state);
+    }
+
+    function handleAction(action, statUpdates, xpGain, dailyKey){
+      Object.entries(statUpdates).forEach(([key, value]) => {
+        state.stats[key] = clamp(state.stats[key] + value);
+      });
+      if (dailyKey) state.daily[dailyKey] = true;
+      gainXP(xpGain);
+      addEvent(action);
+      render();
+      storageBridge.set(state);
+    }
+
+    function wireActions(){
+      elements.feedBtn.addEventListener("click", () => handleAction("Luna gefüttert", { hunger: 25, happiness: 8 }, 12, "feed"));
+      elements.petBtn.addEventListener("click", () => handleAction("Luna gestreichelt", { happiness: 22 }, 10, "pet"));
+      elements.sleepBtn.addEventListener("click", () => handleAction("Luna schläft", { energy: 30, health: 6 }, 12, "sleep"));
+      elements.brushBtn.addEventListener("click", () => handleAction("Luna gebürstet", { cleanliness: 25, happiness: 6 }, 14, "brush"));
+      elements.bathBtn.addEventListener("click", () => handleAction("Luna gebadet", { cleanliness: 35, happiness: 4 }, 16));
+      elements.medBtn.addEventListener("click", () => handleAction("Medizin gegeben", { health: 25, happiness: -4 }, 18));
+      elements.dailyClose.addEventListener("click", () => elements.dailyOverlay.classList.remove("show"));
+    }
+
+    function wireNav(){
+      const tabs = document.querySelectorAll(".tab");
+      const navButtons = document.querySelectorAll(".nav button");
+      const tabWrapper = document.getElementById("tabs");
+      const homeSection = document.querySelector(".stage-card");
+
+      function show(tab){
+        if (tab === "home") {
+          tabWrapper.style.display = "none";
+          homeSection.style.display = "flex";
+        } else {
+          tabWrapper.style.display = "flex";
+          homeSection.style.display = "none";
+          tabs.forEach((section) => section.classList.toggle("active", section.dataset.tab === tab));
+        }
+        navButtons.forEach((btn) => btn.classList.toggle("active", btn.dataset.nav === tab));
+      }
+
+      navButtons.forEach((btn) => btn.addEventListener("click", () => show(btn.dataset.nav)));
+      show("home");
+    }
+
+    function startGame(){
+      let timeLeft = 15;
+      let hits = 0;
+      elements.gameArea.innerHTML = "";
+      elements.gameTimer.textContent = `${timeLeft}s`;
+      const interval = setInterval(() => {
+        timeLeft -= 1;
+        elements.gameTimer.textContent = `${timeLeft}s`;
+        if (timeLeft <= 0) {
+          clearInterval(interval);
+          handleAction(`Mini-Game gespielt (+${hits} Herzen)`, { happiness: hits * 2 }, 10 + hits * 2);
+          return;
+        }
+        spawnBall();
+      }, 1000);
+
+      function spawnBall(){
+        const ball = document.createElement("div");
+        ball.className = "ball";
+        ball.textContent = "❤";
+        ball.style.left = `${Math.random() * 80 + 5}%`;
+        ball.style.top = `${Math.random() * 70 + 10}%`;
+        ball.addEventListener("click", () => {
+          hits += 1;
+          ball.remove();
+        });
+        elements.gameArea.appendChild(ball);
+        setTimeout(() => ball.remove(), 900);
+      }
+    }
+
+    elements.startGameBtn.addEventListener("click", startGame);
+
+    async function init(){
+      const stored = await storageBridge.get();
+      if (stored) state = { ...DEFAULT_STATE(), ...stored };
+      ensureDaily();
+      applyDecay();
+      wireActions();
+      wireNav();
+      render();
+      setInterval(tick, 30000);
     }
 
     init();
-    setInterval(() => {
-      checkDailyReset();
-      checkUnlocks();
-    }, 60000);
   </script>
 </body>
 </html>
