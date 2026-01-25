@@ -53,3 +53,9 @@ Security rules:
 - Guest users see read-only previews and cannot persist data.
 - Logged-in users persist data via server-side functions (Netlify Blob Storage).
 - Roles can be edited in `netlify/roles.json` or via the Admin Console.
+
+## Netlify Identity Setup
+- Identity aktivieren und externe Provider konfigurieren.
+- Google Provider aktivieren und die Site URL korrekt setzen.
+- Optional: Email/Passwort Login im Netlify Dashboard deaktivieren oder im Widget ausblenden.
+- Admin-Email in `index.html` ersetzen (`ADMIN_EMAIL = "DEINE_ADMIN_EMAIL"`).

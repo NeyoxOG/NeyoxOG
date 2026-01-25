@@ -153,6 +153,9 @@
     .g-yellow{color:#fbbc05;}
     .g-green{color:#34a853;}
     .status-toast{margin-left:8px; font-size:12px; color:var(--muted);}
+    .auth-toast{position:fixed; top:16px; right:16px; padding:8px 12px; border-radius:12px; background:rgba(0,0,0,.45); color:var(--text); font-size:12px; opacity:0; pointer-events:none; transform:translateY(-6px); transition: opacity .2s var(--ease), transform .2s var(--ease); z-index:80;}
+    .auth-toast.show{opacity:1; transform:translateY(0);}
+    .auth-chip.glow{box-shadow:0 0 22px rgba(255,77,109,.45);}
     .account-menu{position:absolute; top:72px; right:16px; min-width:200px; display:none; flex-direction:column; gap:8px; padding:12px; border-radius:16px; border:1px solid var(--line); background:rgba(255,255,255,.12); backdrop-filter: blur(16px); box-shadow: var(--shadow); z-index:30;}
     .account-menu.show{display:flex;}
     .account-menu button{width:100%; justify-content:flex-start;}
@@ -193,7 +196,7 @@
         </div>
       </div>
       <div class="topbar-row2">
-        <button class="pill auth-chip" id="accountBtn" aria-label="Mit Google anmelden">Google Login</button>
+        <button class="pill auth-chip" id="accountBtn" aria-label="Mit Google anmelden">Mit Google anmelden</button>
         <span class="status-toast" id="loginError" style="display:none;"></span>
       </div>
     </div>
@@ -378,6 +381,7 @@
     <button class="btn secondary" id="accountAdminBtn" style="display:none;">Admin-Menü</button>
     <button class="btn secondary" id="logoutBtn">Logout</button>
   </div>
+  <div class="auth-toast" id="authToast" role="status" aria-live="polite"></div>
 
   <script>
     const DEFAULT_PROFILE = {
@@ -440,20 +444,34 @@
       rewards: "hub_rewards"
     };
 
+    const ADMIN_EMAIL = "DEINE_ADMIN_EMAIL";
     const authState = {
       user: null,
       role: null,
       permissions: []
     };
 
+    const getUserId = (user) => user?.id || user?.user?.id || user?.sub || user?.email;
+    const getScopedKey = (baseKey) => {
+      const userId = getUserId(authState.user);
+      if (userId) return `uid:${userId}:${baseKey}`;
+      return `guest:${baseKey}`;
+    };
+
     const loadJSON = (key, fallback) => {
-      if (!authState.user) return fallback;
-      try{ return JSON.parse(localStorage.getItem(key)) ?? fallback; }
+      const scopedKey = getScopedKey(key);
+      try{
+        const raw = localStorage.getItem(scopedKey) ?? localStorage.getItem(key);
+        if (raw && !localStorage.getItem(scopedKey)) {
+          localStorage.setItem(scopedKey, raw);
+        }
+        return raw ? JSON.parse(raw) : fallback;
+      }
       catch{ return fallback; }
     };
     const saveJSON = (key, value) => {
-      if (!authState.user) return;
-      localStorage.setItem(key, JSON.stringify(value));
+      const scopedKey = getScopedKey(key);
+      localStorage.setItem(scopedKey, JSON.stringify(value));
       if (authState.user) {
         authFetch("/.netlify/functions/state-set", {
           method: "POST",
@@ -517,6 +535,7 @@
       accountAdminBtn: document.getElementById("accountAdminBtn"),
       accountProfileBtn: document.getElementById("accountProfileBtn"),
       logoutBtn: document.getElementById("logoutBtn"),
+      authToast: document.getElementById("authToast"),
       panelAdmin: document.getElementById("panelAdmin"),
       adminDock: document.getElementById("adminDock"),
       adminUsers: document.getElementById("adminUsers"),
@@ -699,26 +718,31 @@
       return fetch(path, { ...options, headers });
     }
 
+    function setAuthUI(user){
+      authState.user = user;
+      authState.role = user?.email === ADMIN_EMAIL ? "admin" : "user";
+      authState.permissions = [];
+      updateAccountUI();
+    }
+
+    function clearAuthUI(){
+      authState.user = null;
+      authState.role = null;
+      authState.permissions = [];
+      updateAccountUI();
+    }
+
     async function loadSession(){
       if (!window.netlifyIdentity) {
-        authState.user = null;
-        authState.role = null;
-        authState.permissions = [];
-        updateAccountUI();
+        clearAuthUI();
         return;
       }
       const user = window.netlifyIdentity.currentUser();
       if (!user) {
-        authState.user = null;
-        authState.role = null;
-        authState.permissions = [];
-        updateAccountUI();
+        clearAuthUI();
         return;
       }
-      authState.user = user;
-      authState.role = user.app_metadata?.role || "user";
-      authState.permissions = [];
-      updateAccountUI();
+      setAuthUI(user);
     }
 
     function updateAccountUI(){
@@ -735,7 +759,7 @@
           <span class="google-mark" aria-hidden="true">
             <span class="g-blue">G</span><span class="g-red">o</span><span class="g-yellow">o</span><span class="g-blue">g</span><span class="g-green">l</span><span class="g-red">e</span>
           </span>
-          <span>Google Login</span>
+          <span>Mit Google anmelden</span>
         `;
         elements.accountBtn.setAttribute("aria-label", "Mit Google anmelden");
       } else {
@@ -775,13 +799,37 @@
       elements.loginError.style.display = "inline";
     }
 
+    function showToast(message){
+      if (!elements.authToast) return;
+      elements.authToast.textContent = message;
+      elements.authToast.classList.add("show");
+      window.setTimeout(() => elements.authToast.classList.remove("show"), 2200);
+    }
+
+    function hideIdentityEmailUI(){
+      const widget = document.querySelector(".netlify-identity-widget");
+      if (!widget) return;
+      widget.querySelectorAll("input[type='email'], input[type='password']").forEach((input) => {
+        const field = input.closest(".form-group") || input.closest("label") || input.parentElement;
+        if (field) field.style.display = "none";
+        input.style.display = "none";
+      });
+      widget.querySelectorAll("a[href*='signup'], a[href*='recovery']").forEach((link) => {
+        link.style.display = "none";
+      });
+    }
+
     function openLogin(){
       if (!window.netlifyIdentity) {
         showLoginError("Google Login ist aktuell nicht verfügbar.");
         return;
       }
       try {
-        window.netlifyIdentity.open("login", { provider: "google" });
+        window.netlifyIdentity.open("login");
+        window.setTimeout(hideIdentityEmailUI, 0);
+        const observer = new MutationObserver(() => hideIdentityEmailUI());
+        observer.observe(document.body, { childList: true, subtree: true });
+        window.setTimeout(() => observer.disconnect(), 2000);
       } catch (err) {
         showLoginError("Google Login ist aktuell nicht verfügbar.");
       }
@@ -802,20 +850,74 @@
         if (namespace === STORAGE_KEYS.profile) profile = payload.data;
         if (namespace === STORAGE_KEYS.state) state = payload.data;
         if (namespace === STORAGE_KEYS.rewards) rewardsState = payload.data;
-        localStorage.setItem(namespace, JSON.stringify(payload.data));
+        const scopedKey = getScopedKey(namespace);
+        localStorage.setItem(scopedKey, JSON.stringify(payload.data));
       });
+    }
+
+    function ensureAccountRecord(){
+      return;
+    }
+
+    function migrateGuestDataToUser(user){
+      const userId = getUserId(user);
+      if (!userId) return;
+      const keys = [STORAGE_KEYS.profile, STORAGE_KEYS.state, STORAGE_KEYS.rewards, "luna_state"];
+      keys.forEach((key) => {
+        const guestKey = `guest:${key}`;
+        const userKey = `uid:${userId}:${key}`;
+        if (!localStorage.getItem(userKey) && localStorage.getItem(guestKey)) {
+          localStorage.setItem(userKey, localStorage.getItem(guestKey));
+        }
+      });
+    }
+
+    function hydrateAccountData(){
+      state = loadJSON(STORAGE_KEYS.state, { introSeen: false, lastProjectId: null });
+      profile = loadJSON(STORAGE_KEYS.profile, DEFAULT_PROFILE);
+      rewardsState = loadJSON(STORAGE_KEYS.rewards, { projects: {}, rewards: [] });
+      applyTheme(profile);
+      initRewards();
+      renderApps();
+      renderRewards();
+      renderRewardFilters();
+      syncSettingsUI();
+      buildSwatches();
     }
 
     function setupIdentity(){
       if (!window.netlifyIdentity) return;
       window.netlifyIdentity.init();
+      window.netlifyIdentity.on("init", (user) => {
+        if (user) {
+          setAuthUI(user);
+          migrateGuestDataToUser(user);
+          hydrateAccountData();
+          hydrateState();
+        } else {
+          clearAuthUI();
+          hydrateAccountData();
+        }
+      });
       window.netlifyIdentity.on("login", (user) => {
-        console.log("Logged in via Google:", user.email);
-        window.location.reload();
+        setAuthUI(user);
+        window.netlifyIdentity.close();
+        ensureAccountRecord(user);
+        migrateGuestDataToUser(user);
+        hydrateAccountData();
+        hydrateState();
+        showToast(`Willkommen, ${user.user_metadata?.full_name || user.email} ✨`);
+        elements.accountBtn.classList.add("glow");
+        window.setTimeout(() => elements.accountBtn.classList.remove("glow"), 1400);
       });
       window.netlifyIdentity.on("logout", () => {
-        console.log("Logged out");
-        window.location.reload();
+        clearAuthUI();
+        hydrateAccountData();
+        showToast("Abgemeldet.");
+      });
+      window.netlifyIdentity.on("error", (err) => {
+        console.error("Netlify Identity error:", err);
+        showToast("Login Fehler – siehe Konsole.");
       });
     }
 
@@ -1119,7 +1221,11 @@
 
     elements.resetIntro.addEventListener("click", () => { state.introSeen = false; saveJSON(STORAGE_KEYS.state, state); showIntro(); });
     elements.resetProfile.addEventListener("click", () => { Object.assign(profile, DEFAULT_PROFILE); applyTheme(profile); syncSettingsUI(); saveJSON(STORAGE_KEYS.profile, profile); });
-    elements.resetRewards.addEventListener("click", () => { localStorage.removeItem(STORAGE_KEYS.rewards); location.reload(); });
+    elements.resetRewards.addEventListener("click", () => {
+      const scopedKey = getScopedKey(STORAGE_KEYS.rewards);
+      localStorage.removeItem(scopedKey);
+      location.reload();
+    });
     elements.simulateUnlock.addEventListener("click", () => { unlockByLevel("valentine", 1); });
 
     elements.introStart.addEventListener("click", () => { state.introSeen = true; saveJSON(STORAGE_KEYS.state, state); hideIntro(); });
@@ -1130,9 +1236,21 @@
       unlockByLevel,
       setProgress: setProjectProgress
     };
+    window.FIA_STORAGE = {
+      getState: async (namespace) => {
+        const key = namespace === "luna" ? "luna_state" : namespace;
+        return loadJSON(key, null);
+      },
+      setState: async (namespace, data) => {
+        const key = namespace === "luna" ? "luna_state" : namespace;
+        saveJSON(key, data);
+      },
+      unlockReward: (namespace, rewardId) => {
+        unlockReward(namespace, rewardId);
+      }
+    };
 
     async function init(){
-      setupIdentity();
       await loadSession();
       await hydrateState();
       applyTheme(profile);
@@ -1156,7 +1274,10 @@
       }
     }
 
-    init();
+    document.addEventListener("DOMContentLoaded", () => {
+      setupIdentity();
+      init();
+    });
   </script>
 
   <!-- NETLIFY OPTIONAL
