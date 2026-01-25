@@ -178,6 +178,7 @@
       <div class="status-right">
         <button class="pill" id="accountBtn" aria-label="Account">👤 Mit Google anmelden</button>
         <span class="status-toast" id="loginError" style="display:none;"></span>
+        <button class="pill" id="accountBtn" aria-label="Account">👤 Gast · Anmelden</button>
         <span id="userLabel">Fia 🌙</span>
         <span>🔋</span>
       </div>
@@ -794,19 +795,6 @@
         if (namespace === STORAGE_KEYS.state) state = payload.data;
         if (namespace === STORAGE_KEYS.rewards) rewardsState = payload.data;
         localStorage.setItem(namespace, JSON.stringify(payload.data));
-      });
-    }
-
-    function setupIdentity(){
-      if (!window.netlifyIdentity) return;
-      window.netlifyIdentity.init();
-      window.netlifyIdentity.on("login", (user) => {
-        console.log("Logged in via Google:", user.email);
-        window.location.reload();
-      });
-      window.netlifyIdentity.on("logout", () => {
-        console.log("Logged out");
-        window.location.reload();
       });
     }
 
